@@ -11,6 +11,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userLabel, setUserLabel] = useState<string>('Utilisateur');
   const [authReady, setAuthReady] = useState<boolean>(!isSupabaseActive());
+  const appVersion = import.meta.env.VITE_APP_VERSION || 'local';
 
   useEffect(() => {
     if (!isSupabaseActive()) return;
@@ -55,7 +56,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="p-6 border-b border-slate-800">
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Chiffrage<span className="text-indigo-500">Pro</span>
-            <span className="ml-2 text-[10px] text-slate-400 align-top">v1.0.4</span>
+            <span className="ml-2 text-[10px] text-slate-400 align-top">v{appVersion}</span>
           </h1>
           <p className="text-slate-500 text-xs mt-1 font-medium tracking-wide uppercase">Manager</p>
         </div>
