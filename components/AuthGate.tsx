@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase, isSupabaseEnabled } from '../services/supabaseClient';
 import { Session } from '@supabase/supabase-js';
 
@@ -12,6 +12,9 @@ const AuthGate: React.FC<Props> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(isSupabaseEnabled);
   const [domainAllowed, setDomainAllowed] = useState(true);
+  const [email, setEmail] = useState('');
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const checkDomain = (currentSession: Session | null) => {
     if (!allowedDomain) return true; // no restriction set
@@ -45,14 +48,31 @@ const AuthGate: React.FC<Props> = ({ children }) => {
     };
   }, []);
 
-  const handleSignIn = async () => {
+  const handleMagicLink = async () => {
     if (!supabase) return;
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
+    setFeedback(null);
+    setError(null);
+
+    if (!email) {
+      setError('Merci de saisir un email.');
+      return;
+    }
+    if (allowedDomain && !email.toLowerCase().endsWith(`@${allowedDomain}`)) {
+      setError('Email hors domaine autorisé.');
+      return;
+    }
+
+    const { error: signErr } = await supabase.auth.signInWithOtp({
+      email,
       options: {
-        redirectTo: window.location.origin + window.location.pathname + window.location.hash
+        emailRedirectTo: window.location.origin + window.location.pathname + window.location.hash
       }
     });
+    if (signErr) {
+      setError(signErr.message);
+    } else {
+      setFeedback("Lien de connexion envoyé. Vérifiez votre boîte mail.");
+    }
   };
 
   const handleSignOut = async () => {
@@ -78,13 +98,27 @@ const AuthGate: React.FC<Props> = ({ children }) => {
       <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-800">
         <div className="bg-white shadow-lg rounded-xl p-10 border border-slate-200 text-center space-y-4 max-w-md">
           <h1 className="text-2xl font-bold">Connexion requise</h1>
-          <p className="text-slate-500">Connectez-vous avec Google pour accéder à ChiffragePro.</p>
-          <button
-            onClick={handleSignIn}
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-md transition"
-          >
-            Se connecter avec Google
-          </button>
+          <p className="text-slate-500">Entrez votre email pour recevoir un lien de connexion.</p>
+          <div className="space-y-3 text-left">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={allowedDomain ? `email@${allowedDomain}` : 'email'}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
+            <button
+              onClick={handleMagicLink}
+              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-md transition"
+            >
+              Envoyer le lien de connexion
+            </button>
+            {feedback && <p className="text-sm text-emerald-600">{feedback}</p>}
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            {allowedDomain && (
+              <p className="text-xs text-slate-500">Accès limité au domaine: {allowedDomain}</p>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -111,4 +145,3 @@ const AuthGate: React.FC<Props> = ({ children }) => {
 };
 
 export default AuthGate;
-
