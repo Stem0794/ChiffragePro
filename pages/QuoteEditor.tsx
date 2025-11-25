@@ -784,7 +784,6 @@ const QuoteEditor: React.FC = () => {
         </div>
       </div>
 
-      {/* Meta Data */}
       <div className="bg-white rounded-xl shadow-md shadow-slate-200/50 border border-slate-200 overflow-hidden">
         <div className="p-8 bg-slate-50/50 border-b border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
