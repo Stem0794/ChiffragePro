@@ -570,10 +570,10 @@ const Clients: React.FC = () => {
                                 <button 
                                     type="button"
                                     onClick={() => selectedClient && handleStartEditClient(selectedClient)}
-                                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                    title="Modifier les infos"
+                                    className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition shadow"
+                                    title="Modifier ce client"
                                 >
-                                    <Edit2 size={20} />
+                                    Modifier
                                 </button>
                                 <button 
                                     type="button"
@@ -589,11 +589,11 @@ const Clients: React.FC = () => {
                         <div className="grid grid-cols-2 gap-6 p-4 bg-slate-50 rounded-lg border border-slate-100">
                             <div className="flex items-center gap-3 text-slate-700 text-sm">
                                 <div className="p-2 bg-white rounded-full text-indigo-500 shadow-sm"><Mail size={16} /></div>
-                                {selectedClient?.email || 'Email non renseigné'}
+                                <span className={selectedClient?.email ? '' : 'text-slate-400 italic'}>{selectedClient?.email || 'Email non renseigné'}</span>
                             </div>
                             <div className="flex items-center gap-3 text-slate-700 text-sm">
                                 <div className="p-2 bg-white rounded-full text-indigo-500 shadow-sm"><MapPin size={16} /></div>
-                                {selectedClient?.address || 'Adresse non renseignée'}
+                                <span className={selectedClient?.address ? '' : 'text-slate-400 italic'}>{selectedClient?.address || 'Adresse non renseignée'}</span>
                             </div>
                         </div>
 
