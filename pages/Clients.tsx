@@ -417,16 +417,22 @@ const Clients: React.FC = () => {
         {showClientForm && (
           <div className="p-5 bg-slate-50 border-b border-slate-200 space-y-4 overflow-y-auto max-h-[500px] shadow-inner shrink-0">
             <h4 className="text-sm font-bold text-slate-700">Nouveau Client</h4>
-            <input 
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none bg-white" 
-              placeholder="Nom du Contact" 
-              value={newClient.name} onChange={e => setNewClient({...newClient, name: e.target.value})}
-            />
-            <input 
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none bg-white" 
-              placeholder="Entreprise" 
-              value={newClient.companyName} onChange={e => setNewClient({...newClient, companyName: e.target.value})}
-            />
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-600">Nom du Contact <span className="text-red-500">*</span></label>
+              <input 
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none bg-white" 
+                placeholder="Nom du Contact" 
+                value={newClient.name} onChange={e => setNewClient({...newClient, name: e.target.value})}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-600">Entreprise <span className="text-red-500">*</span></label>
+              <input 
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none bg-white" 
+                placeholder="Entreprise" 
+                value={newClient.companyName} onChange={e => setNewClient({...newClient, companyName: e.target.value})}
+              />
+            </div>
              <input 
               className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none bg-white" 
               placeholder="Email" 

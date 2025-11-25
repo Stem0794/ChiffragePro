@@ -698,7 +698,7 @@ const QuoteEditor: React.FC = () => {
                 
                 <div className="grid grid-cols-2 gap-4">
                      <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Client</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Client <span className="text-red-500">*</span></label>
                         <select 
                             value={quote.clientId} 
                             onChange={handleClientChange}
@@ -709,7 +709,7 @@ const QuoteEditor: React.FC = () => {
                         </select>
                      </div>
                      <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Projet</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Projet <span className="text-red-500">*</span></label>
                         <select 
                             value={quote.projectId} 
                             onChange={handleProjectChange}
