@@ -784,14 +784,14 @@ const QuoteEditor: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-xl shadow-md shadow-slate-200/50 border border-slate-200 overflow-hidden">
-        <div className="p-8 bg-slate-50/50 border-b border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
+        <div className="p-8 bg-slate-50/50 border-b border-slate-200 grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-12">
+            <div className="space-y-8">
                 <div className="flex items-center gap-2 mb-2">
                     <div className="w-1 h-6 bg-indigo-500 rounded-full"></div>
                     <h3 className="text-lg font-bold text-slate-800">Informations Générales</h3>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Nom du chiffrage</label>
                         <input 
@@ -802,7 +802,7 @@ const QuoteEditor: React.FC = () => {
                             placeholder="Ex: Refonte portail client"
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="ref-internal-block">
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Référence (interne)</label>
                             <input 
@@ -825,7 +825,7 @@ const QuoteEditor: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Client <span className="text-red-500">*</span></label>
                         <select 
