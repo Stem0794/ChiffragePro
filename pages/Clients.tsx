@@ -5,9 +5,17 @@ import { Client, Project } from '../types';
 import { Plus, User, Briefcase, Building, MapPin, Mail, Trash2, Edit2, Check, ArrowRight, X, Save, DollarSign, LayoutTemplate } from 'lucide-react';
 
 const COMMON_ROLES = [
-  "Directeur général", "Directeur projet", "Chef de projet senior", 
-  "Chef de projet", "UX designer", "UI designer", "Data Analyst", 
-  "Directeur technique", "SRE", "Full stack developer"
+  "UX/UI designer",
+  "Art Director",
+  "Developer",
+  "Data Analyst",
+  "CDP Senior",
+  "CDP",
+  "Directeur projet",
+  "Directeur technique",
+  "Directeur de production",
+  "Tech lead",
+  "SRE"
 ];
 
 const TjmManager: React.FC<{
@@ -110,7 +118,19 @@ const Clients: React.FC = () => {
   // Creation States
   const [newClient, setNewClient] = useState<Partial<Client>>({ 
     name: '', companyName: '', email: '', 
-    defaultTjms: { "Chef de projet": 600, "Full stack developer": 500 } // defaults
+    defaultTjms: { 
+      "UX/UI designer": 720,
+      "Art Director": 920,
+      "Developer": 880,
+      "Data Analyst": 880,
+      "CDP Senior": 720,
+      "CDP": 650,
+      "Directeur projet": 920,
+      "Directeur technique": 1400,
+      "Directeur de production": 1050,
+      "Tech lead": 1050,
+      "SRE": 1050
+    }
   });
   const [newProject, setNewProject] = useState<Partial<Project>>({ 
     name: '', specificTjms: {} 

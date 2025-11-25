@@ -7,16 +7,17 @@ const QUOTES_KEY = 'devispro_quotes';
 
 // Default roles for local fallback seeding
 const DEFAULT_ROLES = {
-  "Directeur général": 1050,
-  "Directeur projet": 880,
-  "Chef de projet senior": 680,
-  "Chef de projet": 600,
-  "UX designer": 720,
-  "UI designer": 650,
-  "Data Analyst": 720,
-  "Directeur technique": 1050,
-  "SRE": 920,
-  "Full stack developer": 800
+  "UX/UI designer": 720,
+  "Art Director": 920,
+  "Developer": 880,
+  "Data Analyst": 880,
+  "CDP Senior": 720,
+  "CDP": 650,
+  "Directeur projet": 920,
+  "Directeur technique": 1400,
+  "Directeur de production": 1050,
+  "Tech lead": 1050,
+  "SRE": 1050
 };
 
 // ---------------------------
@@ -55,11 +56,7 @@ const seedLocalData = () => {
           companyName: 'GreenEnergy', 
           email: 'bob@green.com', 
           address: '456 Eco Blvd, Lyon', 
-          defaultTjms: { 
-              "Chef de projet": 550,
-              "Full stack developer": 650,
-              "UX designer": 600
-          } 
+          defaultTjms: { ...DEFAULT_ROLES }
       },
     ];
     localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients));
@@ -183,8 +180,9 @@ const localService = {
 // ---------------------------
 // Helpers: Supabase mapping
 // ---------------------------
-const toDbClient = (c: Client) => ({
+const toDbClient = (c: Client, ownerId: string) => ({
   id: c.id,
+  owner_id: ownerId,
   name: c.name,
   email: c.email || '',
   company_name: c.companyName,
@@ -201,8 +199,9 @@ const fromDbClient = (row: any): Client => ({
   defaultTjms: row.default_tjms || {}
 });
 
-const toDbProject = (p: Project) => ({
+const toDbProject = (p: Project, ownerId: string) => ({
   id: p.id,
+  owner_id: ownerId,
   client_id: p.clientId,
   name: p.name,
   description: p.description || '',
@@ -217,8 +216,9 @@ const fromDbProject = (row: any): Project => ({
   specificTjms: row.specific_tjms || {}
 });
 
-const toDbQuote = (q: Quote) => ({
+const toDbQuote = (q: Quote, ownerId: string) => ({
   id: q.id,
+  owner_id: ownerId,
   reference: q.reference,
   version: q.version,
   client_id: q.clientId,
@@ -262,50 +262,68 @@ const fromDbQuote = (row: any): Quote => ({
 // Supabase-backed implementation
 // ---------------------------
 const supabaseService = {
+  async requireUserId() {
+    const { data, error } = await supabase!.auth.getUser();
+    if (error || !data.user) {
+      throw new Error('Utilisateur non authentifié');
+    }
+    return data.user.id;
+  },
+
   async getClients(): Promise<Client[]> {
+    const userId = await this.requireUserId();
     const { data, error } = await supabase!
       .from('clients')
       .select('*')
+      .eq('owner_id', userId)
       .order('company_name', { ascending: true });
     if (error) throw error;
     return (data || []).map(fromDbClient);
   },
 
   async saveClients(clients: Client[]) {
-    const payload = clients.map(toDbClient);
+    const userId = await this.requireUserId();
+    const payload = clients.map(c => toDbClient(c, userId));
     const { error } = await supabase!.from('clients').upsert(payload);
     if (error) throw error;
   },
 
   async deleteClient(id: string) {
-    const { error } = await supabase!.from('clients').delete().eq('id', id);
+    const userId = await this.requireUserId();
+    const { error } = await supabase!.from('clients').delete().eq('id', id).eq('owner_id', userId);
     if (error) throw error;
   },
 
   async getProjects(): Promise<Project[]> {
+    const userId = await this.requireUserId();
     const { data, error } = await supabase!
       .from('projects')
       .select('*')
+      .eq('owner_id', userId)
       .order('name', { ascending: true });
     if (error) throw error;
     return (data || []).map(fromDbProject);
   },
 
   async saveProjects(projects: Project[]) {
-    const payload = projects.map(toDbProject);
+    const userId = await this.requireUserId();
+    const payload = projects.map(p => toDbProject(p, userId));
     const { error } = await supabase!.from('projects').upsert(payload);
     if (error) throw error;
   },
 
   async deleteProject(id: string) {
-    const { error } = await supabase!.from('projects').delete().eq('id', id);
+    const userId = await this.requireUserId();
+    const { error } = await supabase!.from('projects').delete().eq('id', id).eq('owner_id', userId);
     if (error) throw error;
   },
 
   async getQuotes(): Promise<Quote[]> {
+    const userId = await this.requireUserId();
     const { data, error } = await supabase!
       .from('quotes')
       .select('*, quote_sections(*, quote_items(*))')
+      .eq('owner_id', userId)
       .order('created_at', { ascending: false });
     if (error) throw error;
     return (data || []).map(fromDbQuote);
@@ -318,8 +336,9 @@ const supabaseService = {
   },
 
   async saveQuote(quote: Quote) {
+    const userId = await this.requireUserId();
     const updatedAt = new Date().toISOString();
-    const baseQuote = toDbQuote({ ...quote, updatedAt });
+    const baseQuote = toDbQuote({ ...quote, updatedAt }, userId);
 
     const { error: baseErr } = await supabase!.from('quotes').upsert(baseQuote);
     if (baseErr) throw baseErr;
@@ -330,7 +349,7 @@ const supabaseService = {
 
     if (quote.sections.length) {
       const sectionsPayload = quote.sections.map((section, index) => ({
-        id: section.id,
+          id: section.id,
         quote_id: quote.id,
         title: section.title,
         position: index
@@ -358,7 +377,8 @@ const supabaseService = {
   },
 
   async deleteQuote(id: string) {
-    const { error } = await supabase!.from('quotes').delete().eq('id', id);
+    const userId = await this.requireUserId();
+    const { error } = await supabase!.from('quotes').delete().eq('id', id).eq('owner_id', userId);
     if (error) throw error;
   }
 };
@@ -402,4 +422,3 @@ export const StorageService = {
     return isSupabaseEnabled ? supabaseService.deleteQuote(id) : localService.deleteQuote(id);
   }
 };
-
