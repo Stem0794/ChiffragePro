@@ -146,23 +146,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center items-center text-center relative overflow-hidden hover:shadow-md transition-shadow">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-400 to-indigo-600"></div>
-            <div className="bg-indigo-50 p-5 rounded-full mb-6">
-                <TrendingUp size={36} className="text-indigo-600" />
-            </div>
-            <h4 className="text-xl font-bold text-slate-800">Objectif Mensuel</h4>
-            <p className="text-slate-500 mt-2 text-sm px-4 leading-relaxed">
-                Vous avez atteint <span className="font-bold text-indigo-700">65%</span> de votre objectif de 10k€. Continuez comme ça !
-            </p>
-            <div className="w-full bg-slate-100 rounded-full h-3 mt-8 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full shadow-[0_0_10px_rgba(79,70,229,0.4)]" style={{ width: '65%' }}></div>
-            </div>
-            <div className="flex justify-between w-full mt-2 text-xs font-semibold text-slate-400">
-                <span>0€</span>
-                <span>10 000€</span>
-            </div>
-        </div>
+        {/* Widget retiré */}
       </div>
     </div>
   );

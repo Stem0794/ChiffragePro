@@ -54,9 +54,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <aside className="w-64 bg-[#0f172a] text-slate-300 flex flex-col shadow-2xl z-20">
         <div className="p-6 border-b border-slate-800">
           <h1 className="text-2xl font-bold text-white tracking-tight">
-            Devis<span className="text-indigo-500">Pro</span>
+            Chiffrage<span className="text-indigo-500">Pro</span>
           </h1>
-          <p className="text-slate-500 text-xs mt-1 font-medium tracking-wide uppercase">Manager v1.2</p>
+          <p className="text-slate-500 text-xs mt-1 font-medium tracking-wide uppercase">Manager</p>
         </div>
 
         <nav className="flex-1 px-3 py-6 space-y-1">
@@ -105,8 +105,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="flex-1 overflow-auto flex flex-col relative bg-slate-50/50">
          <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex justify-between items-center shadow-sm">
              <div>
-                <h2 className="text-xl font-bold text-slate-800">Gestion Commerciale</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Pilotez votre activité simplement</p>
+                <h2 className="text-xl font-bold text-slate-800">ChiffragePro</h2>
              </div>
              
              <div className="flex items-center gap-4">
