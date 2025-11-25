@@ -687,12 +687,13 @@ const QuoteEditor: React.FC = () => {
   return (
     <div className="max-w-[95%] mx-auto space-y-8 pb-32">
       {/* Header Controls */}
-      <div className="flex items-center justify-between sticky top-[73px] z-20 py-3 bg-slate-50/95 backdrop-blur-sm -mx-4 px-4 border-b border-slate-200">
-        <button onClick={() => navigate('/quotes')} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-medium">
-          <ArrowLeft size={20} /> Retour
-        </button>
-        <div className="flex items-center gap-3 flex-wrap justify-end">
-            <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 shadow-sm">
+      <div className="sticky top-[73px] z-20 bg-slate-50/95 backdrop-blur-sm -mx-4 px-4 border-b border-slate-200 py-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-center gap-3">
+            <button onClick={() => navigate('/quotes')} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-medium">
+              <ArrowLeft size={20} /> Retour
+            </button>
+            <div className="flex items-center gap-3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 shadow-sm">
               <div className="flex flex-col leading-tight">
                 <span className="text-xs text-slate-500">Réf interne</span>
                 <span className="font-semibold text-slate-800">{quote.reference}</span>
@@ -700,7 +701,7 @@ const QuoteEditor: React.FC = () => {
               <span className="px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded-full font-semibold">v{quote.version}</span>
               {versionOptions.length > 0 && (
                 <select
-                  className="ml-2 text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700"
+                  className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700"
                   value={quote.id}
                   onChange={(e) => navigate(`/quotes/edit/${e.target.value}`)}
                 >
@@ -728,16 +729,17 @@ const QuoteEditor: React.FC = () => {
                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                 </div>
             </div>
-
-            <button onClick={handleExportExcel} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-emerald-700 hover:text-emerald-800 hover:border-emerald-300 rounded-lg shadow-sm transition-colors font-medium text-sm">
+          </div>
+          <div className="flex flex-wrap items-center gap-2 justify-end">
+            <button onClick={handleExportExcel} className="flex items-center gap-2 h-10 px-4 bg-white border border-slate-200 text-emerald-700 hover:text-emerald-800 hover:border-emerald-300 rounded-lg shadow-sm transition-colors font-medium text-sm">
                 <FileSpreadsheet size={18} /> Excel
             </button>
-            <button onClick={handleExportPdf} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-200 rounded-lg shadow-sm transition-colors font-medium text-sm">
+            <button onClick={handleExportPdf} className="flex items-center gap-2 h-10 px-4 bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-200 rounded-lg shadow-sm transition-colors font-medium text-sm">
                 <FileText size={18} /> Export PDF
             </button>
             <button 
                 onClick={handleSave}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all active:scale-95 font-medium"
+                className="flex items-center gap-2 h-10 px-5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all active:scale-95 font-medium"
             >
                 <Save size={18} /> Enregistrer
             </button>
@@ -745,18 +747,19 @@ const QuoteEditor: React.FC = () => {
               <button
                 onClick={() => duplicateQuote('version')}
                 disabled={isDuplicating}
-                className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg transition disabled:opacity-60"
+                className="flex items-center gap-1 h-10 px-3 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg transition disabled:opacity-60"
               >
                 Nouvelle version
               </button>
               <button
                 onClick={() => duplicateQuote('copy')}
                 disabled={isDuplicating}
-                className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition disabled:opacity-60"
+                className="flex items-center gap-1 h-10 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition disabled:opacity-60"
               >
                 Dupliquer
               </button>
             </div>
+          </div>
         </div>
       </div>
 
