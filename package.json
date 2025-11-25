@@ -11,11 +11,12 @@
   "dependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "@google/genai": "0.1.0",
-    "lucide-react": "0.344.0",
+    "@google/genai": "^1.30.0",
+    "lucide-react": "^0.554.0",
     "react-router-dom": "6.22.3",
-    "recharts": "2.12.3",
-    "@hello-pangea/dnd": "16.6.0"
+    "recharts": "^3.5.0",
+    "react-is": "^19.2.0",
+    "@hello-pangea/dnd": "^18.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
