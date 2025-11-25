@@ -165,13 +165,17 @@ const Clients: React.FC = () => {
       if (window.confirm("Êtes-vous sûr de vouloir supprimer ce client ?\nCette action est irréversible et supprimera tous les projets et devis associés.")) {
           // 1. Optimistic UI Update
           setClients(prev => prev.filter(c => c.id !== id));
+          setProjects(prev => prev.filter(p => p.clientId !== id));
+          setEditingProjectId(null);
           
           if (selectedClientId === id) {
              setSelectedClientId(null);
+             setIsEditingClient(false);
           }
           
-          // 2. Persist to storage
+          // 2. Persist to storage + reload to reflect cascade deletions
           StorageService.deleteClient(id);
+          refreshData();
       }
   };
 
@@ -218,9 +222,11 @@ const Clients: React.FC = () => {
       if(window.confirm("Êtes-vous sûr de vouloir supprimer ce projet ?\nCette action est irréversible.")) {
           // 1. Optimistic UI Update
           setProjects(prev => prev.filter(p => p.id !== id));
+          setEditingProjectId(null);
           
           // 2. Persist to storage
           StorageService.deleteProject(id);
+          refreshData();
       }
   };
 

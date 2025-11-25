@@ -1,6 +1,19 @@
 
 import { Client, Project, Quote, QuoteStatus } from '../types';
 
+// Safely read an array from localStorage, returning [] on any issue
+const readArray = <T>(key: string): T[] => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.warn('Unable to read data from localStorage key:', key, e);
+    return [];
+  }
+};
+
 const CLIENTS_KEY = 'devispro_clients';
 const PROJECTS_KEY = 'devispro_projects';
 const QUOTES_KEY = 'devispro_quotes';
@@ -105,11 +118,7 @@ const seedData = () => {
 seedData();
 
 export const StorageService = {
-  getClients: (): Client[] => {
-      try {
-          return JSON.parse(localStorage.getItem(CLIENTS_KEY) || '[]');
-      } catch(e) { return []; }
-  },
+  getClients: (): Client[] => readArray<Client>(CLIENTS_KEY),
   saveClients: (clients: Client[]) => localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients)),
   
   deleteClient: (id: string) => {
@@ -130,11 +139,7 @@ export const StorageService = {
       StorageService.saveQuotes(remainingQuotes);
   },
 
-  getProjects: (): Project[] => {
-      try {
-          return JSON.parse(localStorage.getItem(PROJECTS_KEY) || '[]');
-      } catch(e) { return []; }
-  },
+  getProjects: (): Project[] => readArray<Project>(PROJECTS_KEY),
   saveProjects: (projects: Project[]) => localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects)),
   
   deleteProject: (id: string) => {
@@ -147,11 +152,7 @@ export const StorageService = {
       StorageService.saveQuotes(quotes);
   },
 
-  getQuotes: (): Quote[] => {
-      try {
-          return JSON.parse(localStorage.getItem(QUOTES_KEY) || '[]');
-      } catch(e) { return []; }
-  },
+  getQuotes: (): Quote[] => readArray<Quote>(QUOTES_KEY),
   saveQuotes: (quotes: Quote[]) => localStorage.setItem(QUOTES_KEY, JSON.stringify(quotes)),
 
   saveQuote: (quote: Quote) => {
