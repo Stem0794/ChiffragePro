@@ -88,7 +88,6 @@ const Quotes: React.FC = () => {
 
   const statusColors = {
     [QuoteStatus.DRAFT]: 'bg-slate-100 text-slate-700 border-slate-200',
-    [QuoteStatus.ESTIMATE]: 'bg-purple-100 text-purple-800 border-purple-200',
     [QuoteStatus.SENT]: 'bg-amber-100 text-amber-800 border-amber-200',
     [QuoteStatus.ACCEPTED]: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     [QuoteStatus.REJECTED]: 'bg-red-100 text-red-800 border-red-200',
@@ -98,13 +97,13 @@ const Quotes: React.FC = () => {
 
   const statusLabels = {
       [QuoteStatus.DRAFT]: 'Brouillon',
-      [QuoteStatus.ESTIMATE]: 'Chiffrage',
       [QuoteStatus.SENT]: 'Envoyé',
       [QuoteStatus.ACCEPTED]: 'Accepté',
       [QuoteStatus.REJECTED]: 'Rejeté',
       [QuoteStatus.PENDING]: 'En attente',
       [QuoteStatus.LATE]: 'En retard',
   }
+  const selectableStatuses = Object.values(QuoteStatus).filter(s => s !== QuoteStatus.ESTIMATE);
 
   const filteredQuotes = quotes
     .filter(q => {
@@ -155,7 +154,7 @@ const Quotes: React.FC = () => {
                     onChange={e => setStatusFilter(e.target.value)}
                 >
                     <option value="ALL">Tous les statuts</option>
-                    {Object.values(QuoteStatus).map(s => (
+                    {selectableStatuses.map(s => (
                         <option key={s} value={s}>{statusLabels[s]}</option>
                     ))}
                 </select>
@@ -203,7 +202,7 @@ const Quotes: React.FC = () => {
                         onChange={(e) => handleStatusChange(quote.id, e.target.value as QuoteStatus)}
                         className={`appearance-none w-full pl-3 pr-8 py-1.5 rounded-full text-xs font-bold border shadow-sm cursor-pointer outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-all ${statusColors[quote.status]}`}
                       >
-                        {Object.values(QuoteStatus).map(s => (
+                        {selectableStatuses.map(s => (
                             <option key={s} value={s} className="bg-white text-slate-800 font-medium py-1">
                                 {statusLabels[s]}
                             </option>

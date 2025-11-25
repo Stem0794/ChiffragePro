@@ -26,7 +26,7 @@ const Dashboard: React.FC = () => {
 
   // Include Sent, Estimates, Pending, and Late in pending amount (Pipeline)
   const pendingAmount = quotes
-    .filter(q => [QuoteStatus.SENT, QuoteStatus.ESTIMATE, QuoteStatus.PENDING, QuoteStatus.LATE].includes(q.status))
+    .filter(q => [QuoteStatus.SENT, QuoteStatus.PENDING, QuoteStatus.LATE].includes(q.status))
     .reduce((acc, q) => acc + q.totalAmount, 0);
 
   const totalQuotes = quotes.length;
@@ -36,7 +36,6 @@ const Dashboard: React.FC = () => {
   // Chart Data preparation
   const data = [
     { name: 'Brouillon', value: quotes.filter(q => q.status === QuoteStatus.DRAFT).length, color: '#cbd5e1' },
-    { name: 'Chiffrage', value: quotes.filter(q => q.status === QuoteStatus.ESTIMATE).length, color: '#a78bfa' },
     { name: 'Envoyé', value: quotes.filter(q => q.status === QuoteStatus.SENT).length, color: '#fbbf24' },
     { name: 'En attente', value: quotes.filter(q => q.status === QuoteStatus.PENDING).length, color: '#fb923c' },
     { name: 'En retard', value: quotes.filter(q => q.status === QuoteStatus.LATE).length, color: '#f472b6' },

@@ -436,7 +436,7 @@ const QuoteEditor: React.FC = () => {
         };
 
         // --- 1. Header (Clean & Modern) ---
-        const docTitle = quote.status === QuoteStatus.DRAFT ? 'BROUILLON' : 'CHIFFRAGE';
+        const docTitle = 'CHIFFRAGE';
         
         // Row 1: Title & Reference
         rows.push([{ v: `${docTitle} ${quote.reference}`, s: styles.titleMain }]); 
@@ -608,13 +608,13 @@ const QuoteEditor: React.FC = () => {
 
   const statusOptions = {
       [QuoteStatus.DRAFT]: 'Brouillon',
-      [QuoteStatus.ESTIMATE]: 'Chiffrage',
       [QuoteStatus.SENT]: 'Envoyé',
       [QuoteStatus.ACCEPTED]: 'Accepté',
       [QuoteStatus.REJECTED]: 'Rejeté',
       [QuoteStatus.PENDING]: 'En attente',
       [QuoteStatus.LATE]: 'En retard'
   }
+  const selectableStatuses = Object.values(QuoteStatus).filter(s => s !== QuoteStatus.ESTIMATE);
   
   const selectedClient = clients.find(c => c.id === quote.clientId);
   const selectedProject = projects.find(p => p.id === quote.projectId);
@@ -642,11 +642,10 @@ const QuoteEditor: React.FC = () => {
                     className={`appearance-none pl-4 pr-10 py-2 rounded-lg text-sm font-bold cursor-pointer outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 border-none shadow-sm transition-all
                         ${quote.status === QuoteStatus.ACCEPTED ? 'bg-emerald-100 text-emerald-800' : 
                           quote.status === QuoteStatus.SENT ? 'bg-amber-100 text-amber-800' : 
-                          quote.status === QuoteStatus.ESTIMATE ? 'bg-purple-100 text-purple-800' : 
                           quote.status === QuoteStatus.REJECTED ? 'bg-red-100 text-red-800' : 'bg-white text-slate-700 border border-slate-300'
                         }`}
                 >
-                    {Object.values(QuoteStatus).map(s => (
+                    {selectableStatuses.map(s => (
                         <option key={s} value={s}>{statusOptions[s]}</option>
                     ))}
                 </select>
@@ -934,7 +933,7 @@ const QuoteEditor: React.FC = () => {
             <div className="flex justify-between items-start mb-12 border-b-2 border-slate-900 pb-6">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 uppercase tracking-tighter">
-                        {quote.status === QuoteStatus.DRAFT ? 'BROUILLON' : 'CHIFFRAGE'}
+            {'CHIFFRAGE'}
                     </h1>
                     <p className="text-sm font-medium text-slate-500 mt-1">Réf: {quote.reference}</p>
                     <p className="text-sm font-medium text-slate-500">Date: {new Date(quote.createdAt).toLocaleDateString('fr-FR')}</p>
