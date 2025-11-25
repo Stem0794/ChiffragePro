@@ -33,7 +33,7 @@ const QuoteEditor: React.FC = () => {
     validUntil: new Date(Date.now() + 86400000 * 30).toISOString(),
     totalAmount: 0,
     notes: '',
-    hasVat: true,
+    hasVat: false,
   });
 
   useEffect(() => {

@@ -86,7 +86,7 @@ const seedLocalData = () => {
         createdAt: new Date(Date.now() - 86400000 * 10).toISOString(),
         updatedAt: new Date(Date.now() - 86400000 * 10).toISOString(),
         validUntil: new Date(Date.now() + 86400000 * 20).toISOString(),
-        hasVat: true,
+        hasVat: false,
         sections: [
           {
             id: 's1',
