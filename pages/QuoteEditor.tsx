@@ -319,6 +319,11 @@ const QuoteEditor: React.FC = () => {
     try {
       const allQuotes = await StorageService.getQuotes();
       const now = new Date().toISOString();
+      const cloneSections = (sections: QuoteSection[]) => sections.map(section => ({
+        ...section,
+        id: crypto.randomUUID(),
+        items: section.items.map(item => ({ ...item, id: crypto.randomUUID() }))
+      }));
       if (mode === 'version') {
         const sameRef = allQuotes.filter(q => q.reference === quote.reference);
         const maxVersion = sameRef.reduce((max, q) => Math.max(max, q.version || 1), quote.version || 1);
@@ -328,7 +333,8 @@ const QuoteEditor: React.FC = () => {
           status: QuoteStatus.DRAFT,
           createdAt: now,
           updatedAt: now,
-          version: maxVersion + 1
+          version: maxVersion + 1,
+          sections: cloneSections(quote.sections)
         };
         await StorageService.saveQuote(newQuote);
         navigate(`/quotes/edit/${newQuote.id}`);
@@ -340,7 +346,8 @@ const QuoteEditor: React.FC = () => {
           status: QuoteStatus.DRAFT,
           createdAt: now,
           updatedAt: now,
-          version: 1
+          version: 1,
+          sections: cloneSections(quote.sections)
         };
         await StorageService.saveQuote(newQuote);
         navigate(`/quotes/edit/${newQuote.id}`);
@@ -356,6 +363,9 @@ const QuoteEditor: React.FC = () => {
   const handleExportPdf = () => {
       const content = pdfTemplateRef.current;
       if (!content) return;
+
+      const clone = content.cloneNode(true) as HTMLDivElement;
+      clone.querySelectorAll('.ref-internal-block').forEach(el => el.remove());
 
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
@@ -399,7 +409,7 @@ const QuoteEditor: React.FC = () => {
           </head>
           <body>
             <div class="print-container">
-              ${content.innerHTML}
+              ${clone.innerHTML}
             </div>
             <script>
               window.onload = function() {
@@ -750,7 +760,7 @@ const QuoteEditor: React.FC = () => {
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
+                        <div className="ref-internal-block">
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Référence (interne)</label>
                             <input 
                                 type="text" 
