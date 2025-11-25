@@ -121,7 +121,11 @@ const QuoteEditor: React.FC = () => {
   const addSection = () => {
       setQuote(prev => ({
           ...prev,
-          sections: [...prev.sections, { id: crypto.randomUUID(), title: 'Nouvelle Phase', items: [] }]
+          sections: [...prev.sections, { 
+            id: crypto.randomUUID(), 
+            title: 'Nouvelle Phase', 
+            items: [{ id: crypto.randomUUID(), description: '', details: {} }] 
+          }]
       }));
   };
 
@@ -302,7 +306,8 @@ const QuoteEditor: React.FC = () => {
       await StorageService.saveQuote(toSave);
       navigate('/quotes');
     } catch (err) {
-      alert("Impossible d'enregistrer le devis. Vérifiez votre connexion.");
+      console.error("Impossible d'enregistrer le devis", err);
+      alert("Impossible d'enregistrer le devis. Vérifiez votre connexion ou les permissions.");
     } finally {
       setLoading(false);
     }
