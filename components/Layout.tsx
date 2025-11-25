@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, FileText, Users, PlusCircle } from 'lucide-react';
-import { supabase, isSupabaseEnabled } from '../services/supabaseClient';
+import { supabase, isSupabaseActive } from '../services/supabaseClient';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,10 +10,10 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userLabel, setUserLabel] = useState<string>('Utilisateur');
-  const [authReady, setAuthReady] = useState<boolean>(!isSupabaseEnabled);
+  const [authReady, setAuthReady] = useState<boolean>(!isSupabaseActive());
 
   useEffect(() => {
-    if (!isSupabaseEnabled) return;
+    if (!isSupabaseActive()) return;
 
     const loadUser = async () => {
       const { data } = await supabase!.auth.getUser();
@@ -36,7 +36,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, []);
 
   const handleSignOut = async () => {
-    if (isSupabaseEnabled && supabase) {
+    if (isSupabaseActive() && supabase) {
       await supabase.auth.signOut();
       setUserEmail(null);
     }
@@ -86,9 +86,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="flex items-center justify-between gap-3 px-2 py-2">
                 <div className="overflow-hidden">
                     <p className="text-white text-sm font-semibold truncate">{userLabel || 'Utilisateur'}</p>
-                    <p className="text-xs text-slate-500 truncate">{isSupabaseEnabled ? (userEmail ? 'Connecté' : authReady ? 'Déconnecté' : 'Connexion...') : 'Mode local'}</p>
+                    <p className="text-xs text-slate-500 truncate">{isSupabaseActive() ? (userEmail ? 'Connecté' : authReady ? 'Déconnecté' : 'Connexion...') : 'Mode local'}</p>
                 </div>
-                {isSupabaseEnabled && (
+                {isSupabaseActive() && (
                   <button
                     onClick={handleSignOut}
                     className="p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-800/70 border border-slate-700 hover:border-slate-500 transition"
@@ -112,7 +112,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                  <div className="h-8 w-px bg-slate-200 mx-2"></div>
                  <NavLink to="/quotes/new" className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-md hover:shadow-indigo-200 active:scale-95">
                      <PlusCircle size={18} />
-                     Nouveau Devis
+                     Nouveau Chiffrage
                  </NavLink>
              </div>
          </header>

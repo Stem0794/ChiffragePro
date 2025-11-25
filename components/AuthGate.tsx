@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase, isSupabaseEnabled } from '../services/supabaseClient';
+import { supabase, isSupabaseEnabled, isSupabaseActive, isDemoMode } from '../services/supabaseClient';
 import { Session } from '@supabase/supabase-js';
 
 interface Props {
@@ -37,7 +37,10 @@ const AuthGate: React.FC<Props> = ({ children }) => {
   };
 
   useEffect(() => {
-    if (!isSupabaseEnabled) return;
+    if (!isSupabaseActive()) {
+      setLoading(false);
+      return;
+    }
 
     const load = async () => {
       setLoading(true);
@@ -62,7 +65,40 @@ const AuthGate: React.FC<Props> = ({ children }) => {
   }, []);
 
   const handleMagicLink = async () => {
-    if (!supabase) return;
+    const trimmed = email.trim().toLowerCase();
+    // Demo access: offline/local data, no Supabase call
+    if (trimmed === 'demo') {
+      localStorage.setItem('demo_mode', 'true');
+      // Seed local demo data
+      try {
+        const mod = await import('../services/storageService');
+        mod.seedLocalData?.();
+      } catch (e) {
+        console.warn('Demo seed failed', e);
+      }
+      const demoSession: Session = {
+        access_token: 'demo',
+        token_type: 'bearer',
+        user: {
+          id: 'demo-user',
+          email: 'demo@with-madrid.com',
+          role: 'authenticated',
+          aud: 'authenticated',
+          created_at: new Date().toISOString(),
+          app_metadata: {},
+          user_metadata: {}
+        },
+        expires_in: 3600 * 24 * 365,
+        expires_at: Math.floor(Date.now() / 1000) + 3600 * 24 * 365
+      };
+      setSession(demoSession);
+      setDomainAllowed(true);
+      setLoading(false);
+      setFeedback("Espace démo activé (données locales)");
+      return;
+    }
+
+    if (!supabase || !isSupabaseActive()) return;
     setFeedback(null);
     setError(null);
 
@@ -138,6 +174,7 @@ const AuthGate: React.FC<Props> = ({ children }) => {
             {allowedDomain && (
               <p className="text-xs text-slate-500">Accès limité au domaine: {allowedDomain}</p>
             )}
+            <p className="text-[11px] text-slate-400">Astuce: tapez "demo" pour une démo locale (sans Supabase).</p>
           </div>
         </div>
       </div>

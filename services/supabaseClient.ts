@@ -9,3 +9,15 @@ export const supabase: SupabaseClient | null = supabaseUrl && supabaseKey
 
 export const isSupabaseEnabled = Boolean(supabase);
 
+export const isDemoMode = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem('demo_mode') === 'true';
+  } catch {
+    return false;
+  }
+};
+
+export const isSupabaseActive = (): boolean => {
+  return isSupabaseEnabled && !isDemoMode();
+};

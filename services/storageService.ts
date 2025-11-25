@@ -1,4 +1,4 @@
-import { supabase, isSupabaseEnabled } from './supabaseClient';
+import { supabase, isSupabaseEnabled, isSupabaseActive, isDemoMode } from './supabaseClient';
 import { Client, Project, Quote, QuoteStatus, QuoteSection, QuoteItem } from '../types';
 
 const CLIENTS_KEY = 'devispro_clients';
@@ -33,7 +33,7 @@ const readArray = <T>(key: string): T[] => {
   }
 };
 
-const seedLocalData = () => {
+export const seedLocalData = () => {
   const hasClients = localStorage.getItem(CLIENTS_KEY) !== null;
   const hasProjects = localStorage.getItem(PROJECTS_KEY) !== null;
   const hasQuotes = localStorage.getItem(QUOTES_KEY) !== null;
@@ -388,35 +388,35 @@ export const StorageService = {
   isRemote: isSupabaseEnabled,
 
   async getClients() {
-    return isSupabaseEnabled ? supabaseService.getClients() : localService.getClients();
+    return isSupabaseActive() ? supabaseService.getClients() : localService.getClients();
   },
   async saveClients(clients: Client[]) {
-    return isSupabaseEnabled ? supabaseService.saveClients(clients) : localService.saveClients(clients);
+    return isSupabaseActive() ? supabaseService.saveClients(clients) : localService.saveClients(clients);
   },
   async deleteClient(id: string) {
-    return isSupabaseEnabled ? supabaseService.deleteClient(id) : localService.deleteClient(id);
+    return isSupabaseActive() ? supabaseService.deleteClient(id) : localService.deleteClient(id);
   },
 
   async getProjects() {
-    return isSupabaseEnabled ? supabaseService.getProjects() : localService.getProjects();
+    return isSupabaseActive() ? supabaseService.getProjects() : localService.getProjects();
   },
   async saveProjects(projects: Project[]) {
-    return isSupabaseEnabled ? supabaseService.saveProjects(projects) : localService.saveProjects(projects);
+    return isSupabaseActive() ? supabaseService.saveProjects(projects) : localService.saveProjects(projects);
   },
   async deleteProject(id: string) {
-    return isSupabaseEnabled ? supabaseService.deleteProject(id) : localService.deleteProject(id);
+    return isSupabaseActive() ? supabaseService.deleteProject(id) : localService.deleteProject(id);
   },
 
   async getQuotes() {
-    return isSupabaseEnabled ? supabaseService.getQuotes() : localService.getQuotes();
+    return isSupabaseActive() ? supabaseService.getQuotes() : localService.getQuotes();
   },
   async saveQuotes(quotes: Quote[]) {
-    return isSupabaseEnabled ? supabaseService.saveQuotes(quotes) : localService.saveQuotes(quotes);
+    return isSupabaseActive() ? supabaseService.saveQuotes(quotes) : localService.saveQuotes(quotes);
   },
   async saveQuote(quote: Quote) {
-    return isSupabaseEnabled ? supabaseService.saveQuote(quote) : localService.saveQuote(quote);
+    return isSupabaseActive() ? supabaseService.saveQuote(quote) : localService.saveQuote(quote);
   },
   async deleteQuote(id: string) {
-    return isSupabaseEnabled ? supabaseService.deleteQuote(id) : localService.deleteQuote(id);
+    return isSupabaseActive() ? supabaseService.deleteQuote(id) : localService.deleteQuote(id);
   }
 };

@@ -438,8 +438,8 @@ const QuoteEditor: React.FC = () => {
         // --- 1. Header (Clean & Modern) ---
         const docTitle = 'CHIFFRAGE';
         
-        // Row 1: Title & Reference
-        rows.push([{ v: `${docTitle} ${quote.reference}`, s: styles.titleMain }]); 
+        // Row 1: Title only (reference kept internal)
+        rows.push([{ v: `${docTitle}`, s: styles.titleMain }]); 
         rows.push(['']); // Spacer
 
         // Row 3: Client
@@ -584,7 +584,7 @@ const QuoteEditor: React.FC = () => {
         ws['!cols'] = wscols;
 
         lib.utils.book_append_sheet(wb, ws, "Chiffrage");
-        lib.writeFile(wb, `${quote.reference}.xlsx`);
+        lib.writeFile(wb, `Chiffrage.xlsx`);
     } catch (error) {
         console.error("Excel export failed:", error);
         alert("Une erreur est survenue lors de l'export Excel.");
