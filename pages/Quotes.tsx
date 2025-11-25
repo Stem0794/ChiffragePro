@@ -51,12 +51,21 @@ const Quotes: React.FC = () => {
   const handleDuplicate = async (quote: Quote, e: React.MouseEvent) => {
     e.stopPropagation();
     const isVersion = window.confirm("Voulez-vous créer une nouvelle version (V" + (quote.version + 1) + ") de ce devis ?\nAnnuler pour faire une copie simple.");
-    
+
+    // Determine next version if we keep the same reference
+    let nextVersion = 1;
+    if (isVersion) {
+      const sameRef = quotes.filter(q => q.reference === quote.reference);
+      const maxVersion = sameRef.reduce((max, q) => Math.max(max, q.version || 0), quote.version);
+      nextVersion = maxVersion + 1;
+    }
+
     const newQuote: Quote = {
         ...quote,
         id: crypto.randomUUID(),
+        title: quote.title || '',
         reference: isVersion ? quote.reference : `${quote.reference}-COPY`,
-        version: isVersion ? quote.version + 1 : 1,
+        version: isVersion ? nextVersion : 1,
         status: QuoteStatus.DRAFT,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -66,7 +75,8 @@ const Quotes: React.FC = () => {
       await refresh();
       navigate(`/quotes/edit/${newQuote.id}`);
     } catch (err) {
-      alert("La duplication a échoué. Vérifiez votre connexion.");
+      console.error("Duplication échouée", err);
+      alert("La duplication a échoué. Vérifiez votre connexion ou les permissions.");
     }
   };
 

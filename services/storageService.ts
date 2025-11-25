@@ -78,6 +78,7 @@ export const seedLocalData = () => {
     const quotes: Quote[] = [
       {
         id: 'q1',
+        title: 'Chiffrage Démo',
         reference: 'DEV-2023-001',
         version: 1,
         clientId: 'c1',
@@ -217,6 +218,7 @@ const fromDbProject = (row: any): Project => ({
 const toDbQuote = (q: Quote, ownerId: string) => ({
   id: q.id,
   owner_id: ownerId,
+  title: q.title || '',
   reference: q.reference,
   version: q.version,
   client_id: q.clientId,
@@ -232,6 +234,7 @@ const toDbQuote = (q: Quote, ownerId: string) => ({
 
 const fromDbQuote = (row: any): Quote => ({
   id: row.id,
+  title: row.title || '',
   reference: row.reference,
   version: row.version,
   clientId: row.client_id,

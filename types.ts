@@ -40,6 +40,7 @@ export interface QuoteSection {
 
 export interface Quote {
   id: string;
+  title?: string;
   reference: string;
   version: number;
   clientId: string;

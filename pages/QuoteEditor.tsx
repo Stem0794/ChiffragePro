@@ -18,6 +18,7 @@ const QuoteEditor: React.FC = () => {
   // Data Sources
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [isDuplicating, setIsDuplicating] = useState(false);
 
   // Form State
   const [quote, setQuote] = useState<Quote>({
@@ -61,9 +62,9 @@ const QuoteEditor: React.FC = () => {
                        details: { [li.role]: li.quantity }
                    }))
                };
-               setQuote({ ...existingQuote, hasVat: true, sections: [migratedSection] });
+               setQuote({ ...existingQuote, hasVat: false, sections: [migratedSection], title: existingQuote.title || '' });
             } else {
-               setQuote({ ...existingQuote, hasVat: existingQuote.hasVat ?? true });
+               setQuote({ ...existingQuote, hasVat: existingQuote.hasVat ?? false, title: existingQuote.title || '' });
             }
           }
         }
@@ -310,6 +311,45 @@ const QuoteEditor: React.FC = () => {
       alert("Impossible d'enregistrer le devis. Vérifiez votre connexion ou les permissions.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const duplicateQuote = async (mode: 'version' | 'copy') => {
+    setIsDuplicating(true);
+    try {
+      const allQuotes = await StorageService.getQuotes();
+      const now = new Date().toISOString();
+      if (mode === 'version') {
+        const sameRef = allQuotes.filter(q => q.reference === quote.reference);
+        const maxVersion = sameRef.reduce((max, q) => Math.max(max, q.version || 1), quote.version || 1);
+        const newQuote: Quote = {
+          ...quote,
+          id: crypto.randomUUID(),
+          status: QuoteStatus.DRAFT,
+          createdAt: now,
+          updatedAt: now,
+          version: maxVersion + 1
+        };
+        await StorageService.saveQuote(newQuote);
+        navigate(`/quotes/edit/${newQuote.id}`);
+      } else {
+        const newQuote: Quote = {
+          ...quote,
+          id: crypto.randomUUID(),
+          reference: `${quote.reference}-COPY`,
+          status: QuoteStatus.DRAFT,
+          createdAt: now,
+          updatedAt: now,
+          version: 1
+        };
+        await StorageService.saveQuote(newQuote);
+        navigate(`/quotes/edit/${newQuote.id}`);
+      }
+    } catch (err) {
+      console.error("Duplication échouée", err);
+      alert("La duplication a échoué. Vérifiez vos permissions ou votre connexion.");
+    } finally {
+      setIsDuplicating(false);
     }
   };
 
@@ -634,7 +674,11 @@ const QuoteEditor: React.FC = () => {
         <button onClick={() => navigate('/quotes')} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-medium">
           <ArrowLeft size={20} /> Retour
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap justify-end">
+            <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 shadow-sm">
+              <span className="font-semibold text-slate-800">Réf:</span> {quote.reference}
+              <span className="px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded-full font-semibold">v{quote.version}</span>
+            </div>
             <div className="relative">
                 <select 
                     value={quote.status}
@@ -666,6 +710,22 @@ const QuoteEditor: React.FC = () => {
             >
                 <Save size={18} /> Enregistrer
             </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => duplicateQuote('version')}
+                disabled={isDuplicating}
+                className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg transition disabled:opacity-60"
+              >
+                Nouvelle version
+              </button>
+              <button
+                onClick={() => duplicateQuote('copy')}
+                disabled={isDuplicating}
+                className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition disabled:opacity-60"
+              >
+                Dupliquer
+              </button>
+            </div>
         </div>
       </div>
 
@@ -677,29 +737,41 @@ const QuoteEditor: React.FC = () => {
                     <div className="w-1 h-6 bg-indigo-500 rounded-full"></div>
                     <h3 className="text-lg font-bold text-slate-800">Informations Générales</h3>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Référence</label>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Nom du chiffrage</label>
                         <input 
                             type="text" 
-                            value={quote.reference}
-                            onChange={e => setQuote({...quote, reference: e.target.value})}
-                            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none placeholder-slate-400 bg-white"
-                            placeholder="REF-001"
+                            value={quote.title || ''}
+                            onChange={e => setQuote({...quote, title: e.target.value})}
+                            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none placeholder-slate-400"
+                            placeholder="Ex: Refonte portail client"
                         />
                     </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Date</label>
-                        <input 
-                            type="date" 
-                            value={quote.createdAt.split('T')[0]}
-                            onChange={e => setQuote({...quote, createdAt: new Date(e.target.value).toISOString()})}
-                            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
-                        />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Référence (interne)</label>
+                            <input 
+                                type="text" 
+                                value={quote.reference}
+                                onChange={e => setQuote({...quote, reference: e.target.value})}
+                                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none placeholder-slate-400"
+                                placeholder="REF-001"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Date</label>
+                            <input 
+                                type="date" 
+                                value={quote.createdAt.split('T')[0]}
+                                onChange={e => setQuote({...quote, createdAt: new Date(e.target.value).toISOString()})}
+                                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                            />
+                        </div>
                     </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                      <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Client <span className="text-red-500">*</span></label>
@@ -935,7 +1007,9 @@ const QuoteEditor: React.FC = () => {
                     <h1 className="text-3xl font-extrabold text-slate-900 uppercase tracking-tighter">
             {'CHIFFRAGE'}
                     </h1>
-                    <p className="text-sm font-medium text-slate-500 mt-1">Réf: {quote.reference}</p>
+                    {quote.reference && (
+                      <p className="text-xs font-medium text-slate-400 mt-1">Réf interne: {quote.reference}</p>
+                    )}
                     <p className="text-sm font-medium text-slate-500">Date: {new Date(quote.createdAt).toLocaleDateString('fr-FR')}</p>
                 </div>
             </div>
