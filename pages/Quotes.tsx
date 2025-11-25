@@ -163,7 +163,7 @@ const Quotes: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden max-w-6xl mx-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50/80 text-slate-600 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
@@ -236,7 +236,7 @@ const Quotes: React.FC = () => {
                         <div className="mb-2 p-4 bg-slate-50 rounded-full">
                            <Search size={24} className="opacity-50" />
                         </div>
-                        <p>Aucun devis trouvé pour ces critères.</p>
+                        <p className="text-sm text-slate-500">Aucun devis trouvé pour ces critères.</p>
                     </td>
                 </tr>
             )}
