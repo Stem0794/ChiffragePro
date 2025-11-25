@@ -101,6 +101,7 @@ const Clients: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Form states
   const [showClientForm, setShowClientForm] = useState(false);
@@ -126,12 +127,21 @@ const Clients: React.FC = () => {
     refreshData();
   }, []);
 
-  const refreshData = () => {
-    setClients(StorageService.getClients());
-    setProjects(StorageService.getProjects());
+  const refreshData = async () => {
+    setLoading(true);
+    try {
+      const [clientsData, projectsData] = await Promise.all([
+        StorageService.getClients(),
+        StorageService.getProjects()
+      ]);
+      setClients(clientsData);
+      setProjects(projectsData);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAddClient = () => {
+  const handleAddClient = async () => {
     if (!newClient.name || !newClient.companyName) return;
     const client: Client = {
       id: crypto.randomUUID(),
@@ -142,41 +152,53 @@ const Clients: React.FC = () => {
       defaultTjms: newClient.defaultTjms || {},
     };
     const updatedClients = [...clients, client];
-    setClients(updatedClients); // UI Update
-    StorageService.saveClients(updatedClients); // Storage Update
+    setClients(updatedClients);
+    try {
+      await StorageService.saveClients(updatedClients);
+      await refreshData();
+    } catch (e) {
+      alert("Impossible d'enregistrer le client. Vérifiez votre connexion.");
+    }
     setShowClientForm(false);
     setNewClient({ name: '', companyName: '', email: '', defaultTjms: { "Chef de projet": 600, "Full stack developer": 500 } });
   };
 
-  const handleUpdateClient = () => {
-      if (!selectedClientId || !editClientData.companyName) return;
-      const updatedClients = clients.map(c => 
-          c.id === selectedClientId ? { ...c, ...editClientData } as Client : c
-      );
-      setClients(updatedClients); // UI Update
-      StorageService.saveClients(updatedClients); // Storage Update
-      setIsEditingClient(false);
+  const handleUpdateClient = async () => {
+    if (!selectedClientId || !editClientData.companyName) return;
+    const updatedClients = clients.map(c => 
+        c.id === selectedClientId ? { ...c, ...editClientData } as Client : c
+    );
+    setClients(updatedClients);
+    try {
+      await StorageService.saveClients(updatedClients);
+      await refreshData();
+    } catch (e) {
+      alert("Impossible de mettre à jour le client.");
+    }
+    setIsEditingClient(false);
   };
   
-  const handleDeleteClient = (id: string, e?: React.MouseEvent) => {
-      e?.stopPropagation();
-      e?.preventDefault();
-      
-      if (window.confirm("Êtes-vous sûr de vouloir supprimer ce client ?\nCette action est irréversible et supprimera tous les projets et devis associés.")) {
-          // 1. Optimistic UI Update
-          setClients(prev => prev.filter(c => c.id !== id));
-          setProjects(prev => prev.filter(p => p.clientId !== id));
-          setEditingProjectId(null);
-          
-          if (selectedClientId === id) {
-             setSelectedClientId(null);
-             setIsEditingClient(false);
-          }
-          
-          // 2. Persist to storage + reload to reflect cascade deletions
-          StorageService.deleteClient(id);
-          refreshData();
-      }
+  const handleDeleteClient = async (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    e?.preventDefault();
+    
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce client ?\nCette action est irréversible et supprimera tous les projets et devis associés.")) {
+        setClients(prev => prev.filter(c => c.id !== id));
+        setProjects(prev => prev.filter(p => p.clientId !== id));
+        setEditingProjectId(null);
+        
+        if (selectedClientId === id) {
+           setSelectedClientId(null);
+           setIsEditingClient(false);
+        }
+        
+        try {
+          await StorageService.deleteClient(id);
+        } catch (err) {
+          alert("La suppression n'a pas abouti côté serveur. Réessayez.");
+        }
+        await refreshData();
+    }
   };
 
   const handleStartEditClient = (client: Client) => {
@@ -184,7 +206,7 @@ const Clients: React.FC = () => {
       setIsEditingClient(true);
   };
 
-  const handleAddProject = () => {
+  const handleAddProject = async () => {
     if (!selectedClientId || !newProject.name) return;
     const project: Project = {
       id: crypto.randomUUID(),
@@ -194,8 +216,13 @@ const Clients: React.FC = () => {
       specificTjms: newProject.specificTjms,
     };
     const updatedProjects = [...projects, project];
-    setProjects(updatedProjects); // UI Update
-    StorageService.saveProjects(updatedProjects); // Storage Update
+    setProjects(updatedProjects);
+    try {
+      await StorageService.saveProjects(updatedProjects);
+      await refreshData();
+    } catch (e) {
+      alert("Impossible d'enregistrer le projet.");
+    }
     setShowProjectForm(false);
     setNewProject({ name: '', specificTjms: {} });
   };
@@ -205,29 +232,36 @@ const Clients: React.FC = () => {
       setEditingProjectId(project.id);
   };
 
-  const handleUpdateProject = () => {
-      if (!editingProjectId || !editProjectData.name) return;
-      const updatedProjects = projects.map(p => 
-          p.id === editingProjectId ? { ...p, ...editProjectData } as Project : p
-      );
-      setProjects(updatedProjects); // UI Update
-      StorageService.saveProjects(updatedProjects); // Storage Update
-      setEditingProjectId(null);
+  const handleUpdateProject = async () => {
+    if (!editingProjectId || !editProjectData.name) return;
+    const updatedProjects = projects.map(p => 
+        p.id === editingProjectId ? { ...p, ...editProjectData } as Project : p
+    );
+    setProjects(updatedProjects);
+    try {
+      await StorageService.saveProjects(updatedProjects);
+      await refreshData();
+    } catch (e) {
+      alert("Impossible de mettre à jour le projet.");
+    }
+    setEditingProjectId(null);
   };
   
-  const handleDeleteProject = (id: string, e?: React.MouseEvent) => {
-      e?.stopPropagation();
-      e?.preventDefault();
-      
-      if(window.confirm("Êtes-vous sûr de vouloir supprimer ce projet ?\nCette action est irréversible.")) {
-          // 1. Optimistic UI Update
-          setProjects(prev => prev.filter(p => p.id !== id));
-          setEditingProjectId(null);
-          
-          // 2. Persist to storage
-          StorageService.deleteProject(id);
-          refreshData();
-      }
+  const handleDeleteProject = async (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    e?.preventDefault();
+    
+    if(window.confirm("Êtes-vous sûr de vouloir supprimer ce projet ?\nCette action est irréversible.")) {
+        setProjects(prev => prev.filter(p => p.id !== id));
+        setEditingProjectId(null);
+        
+        try {
+          await StorageService.deleteProject(id);
+        } catch (err) {
+          alert("La suppression n'a pas abouti côté serveur.");
+        }
+        await refreshData();
+    }
   };
 
   const filteredProjects = selectedClientId 

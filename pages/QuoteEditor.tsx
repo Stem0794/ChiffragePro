@@ -36,31 +36,42 @@ const QuoteEditor: React.FC = () => {
   });
 
   useEffect(() => {
-    const loadedClients = StorageService.getClients();
-    const loadedProjects = StorageService.getProjects();
-    setClients(loadedClients);
-    setProjects(loadedProjects);
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [loadedClients, loadedProjects] = await Promise.all([
+          StorageService.getClients(),
+          StorageService.getProjects()
+        ]);
+        setClients(loadedClients);
+        setProjects(loadedProjects);
 
-    if (id && id !== 'new') {
-      const existingQuote = StorageService.getQuotes().find(q => q.id === id);
-      if (existingQuote) {
-        if (!existingQuote.sections && (existingQuote as any).items) {
-           const legacyItems = (existingQuote as any).items;
-           const migratedSection: QuoteSection = {
-               id: crypto.randomUUID(),
-               title: 'Prestations (Migré)',
-               items: legacyItems.map((li: any) => ({
-                   id: li.id || crypto.randomUUID(),
-                   description: li.description,
-                   details: { [li.role]: li.quantity }
-               }))
-           };
-           setQuote({ ...existingQuote, hasVat: true, sections: [migratedSection] });
-        } else {
-           setQuote({ ...existingQuote, hasVat: existingQuote.hasVat ?? true });
+        if (id && id !== 'new') {
+          const existingQuote = (await StorageService.getQuotes()).find(q => q.id === id);
+          if (existingQuote) {
+            if (!existingQuote.sections && (existingQuote as any).items) {
+               const legacyItems = (existingQuote as any).items;
+               const migratedSection: QuoteSection = {
+                   id: crypto.randomUUID(),
+                   title: 'Prestations (Migré)',
+                   items: legacyItems.map((li: any) => ({
+                       id: li.id || crypto.randomUUID(),
+                       description: li.description,
+                       details: { [li.role]: li.quantity }
+                   }))
+               };
+               setQuote({ ...existingQuote, hasVat: true, sections: [migratedSection] });
+            } else {
+               setQuote({ ...existingQuote, hasVat: existingQuote.hasVat ?? true });
+            }
+          }
         }
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    loadData();
   }, [id]);
 
   const currentClientProjects = quote.clientId 
@@ -271,14 +282,21 @@ const QuoteEditor: React.FC = () => {
       return section.items.reduce((acc, item) => acc + (item.details[role] || 0), 0);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if(!quote.clientId || !quote.projectId) {
         alert("Veuillez sélectionner un client et un projet.");
         return;
     }
     const toSave = { ...quote, updatedAt: new Date().toISOString() };
-    StorageService.saveQuote(toSave);
-    navigate('/quotes');
+    setLoading(true);
+    try {
+      await StorageService.saveQuote(toSave);
+      navigate('/quotes');
+    } catch (err) {
+      alert("Impossible d'enregistrer le devis. Vérifiez votre connexion.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleExportPdf = () => {

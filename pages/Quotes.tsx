@@ -13,26 +13,41 @@ const Quotes: React.FC = () => {
   const [filterText, setFilterText] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [clientFilter, setClientFilter] = useState<string>('ALL');
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     refresh();
   }, []);
 
-  const refresh = () => {
-      setQuotes(StorageService.getQuotes());
-      setClients(StorageService.getClients());
-      setProjects(StorageService.getProjects());
-  }
+  const refresh = async () => {
+      setLoading(true);
+      try {
+        const [quotesData, clientsData, projectsData] = await Promise.all([
+          StorageService.getQuotes(),
+          StorageService.getClients(),
+          StorageService.getProjects()
+        ]);
+        setQuotes(quotesData);
+        setClients(clientsData);
+        setProjects(projectsData);
+      } finally {
+        setLoading(false);
+      }
+  };
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
       e.stopPropagation();
       if(window.confirm("Êtes-vous sûr de vouloir supprimer ce devis ?")) {
-          StorageService.deleteQuote(id);
-          refresh();
+          try {
+            await StorageService.deleteQuote(id);
+          } catch (err) {
+            alert("La suppression du devis a échoué. Réessayez.");
+          }
+          await refresh();
       }
-  }
+  };
 
-  const handleDuplicate = (quote: Quote, e: React.MouseEvent) => {
+  const handleDuplicate = async (quote: Quote, e: React.MouseEvent) => {
     e.stopPropagation();
     const isVersion = window.confirm("Voulez-vous créer une nouvelle version (V" + (quote.version + 1) + ") de ce devis ?\nAnnuler pour faire une copie simple.");
     
@@ -45,19 +60,27 @@ const Quotes: React.FC = () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     };
-    StorageService.saveQuote(newQuote);
-    refresh();
-    navigate(`/quotes/edit/${newQuote.id}`);
+    try {
+      await StorageService.saveQuote(newQuote);
+      await refresh();
+      navigate(`/quotes/edit/${newQuote.id}`);
+    } catch (err) {
+      alert("La duplication a échoué. Vérifiez votre connexion.");
+    }
   };
 
-  const handleStatusChange = (id: string, newStatus: QuoteStatus) => {
-      const quoteToUpdate = quotes.find(q => q.id === id);
-      if (quoteToUpdate) {
-          const updatedQuote = { ...quoteToUpdate, status: newStatus, updatedAt: new Date().toISOString() };
-          StorageService.saveQuote(updatedQuote);
-          refresh();
-      }
-  }
+  const handleStatusChange = async (id: string, newStatus: QuoteStatus) => {
+    const quoteToUpdate = quotes.find(q => q.id === id);
+    if (quoteToUpdate) {
+        const updatedQuote = { ...quoteToUpdate, status: newStatus, updatedAt: new Date().toISOString() };
+        try {
+          await StorageService.saveQuote(updatedQuote);
+          await refresh();
+        } catch (err) {
+          alert("Impossible de mettre à jour le statut.");
+        }
+    }
+  };
 
   const getClientName = (id: string) => clients.find(c => c.id === id)?.companyName || 'Inconnu';
   const getProjectName = (id: string) => projects.find(p => p.id === id)?.name || 'Inconnu';

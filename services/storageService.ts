@@ -1,7 +1,27 @@
+import { supabase, isSupabaseEnabled } from './supabaseClient';
+import { Client, Project, Quote, QuoteStatus, QuoteSection, QuoteItem } from '../types';
 
-import { Client, Project, Quote, QuoteStatus } from '../types';
+const CLIENTS_KEY = 'devispro_clients';
+const PROJECTS_KEY = 'devispro_projects';
+const QUOTES_KEY = 'devispro_quotes';
 
-// Safely read an array from localStorage, returning [] on any issue
+// Default roles for local fallback seeding
+const DEFAULT_ROLES = {
+  "Directeur général": 1050,
+  "Directeur projet": 880,
+  "Chef de projet senior": 680,
+  "Chef de projet": 600,
+  "UX designer": 720,
+  "UI designer": 650,
+  "Data Analyst": 720,
+  "Directeur technique": 1050,
+  "SRE": 920,
+  "Full stack developer": 800
+};
+
+// ---------------------------
+// Helpers: localStorage fallback
+// ---------------------------
 const readArray = <T>(key: string): T[] => {
   try {
     const raw = localStorage.getItem(key);
@@ -14,26 +34,7 @@ const readArray = <T>(key: string): T[] => {
   }
 };
 
-const CLIENTS_KEY = 'devispro_clients';
-const PROJECTS_KEY = 'devispro_projects';
-const QUOTES_KEY = 'devispro_quotes';
-
-// Default roles based on user request
-const DEFAULT_ROLES = {
-    "Directeur général": 1050,
-    "Directeur projet": 880,
-    "Chef de projet senior": 680,
-    "Chef de projet": 600,
-    "UX designer": 720,
-    "UI designer": 650,
-    "Data Analyst": 720,
-    "Directeur technique": 1050,
-    "SRE": 920,
-    "Full stack developer": 800
-};
-
-// Seed data if empty
-const seedData = () => {
+const seedLocalData = () => {
   const hasClients = localStorage.getItem(CLIENTS_KEY) !== null;
   const hasProjects = localStorage.getItem(PROJECTS_KEY) !== null;
   const hasQuotes = localStorage.getItem(QUOTES_KEY) !== null;
@@ -115,59 +116,290 @@ const seedData = () => {
   }
 };
 
-seedData();
+if (!isSupabaseEnabled) {
+  seedLocalData();
+}
 
-export const StorageService = {
-  getClients: (): Client[] => readArray<Client>(CLIENTS_KEY),
-  saveClients: (clients: Client[]) => localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients)),
-  
-  deleteClient: (id: string) => {
-      // 1. Delete Client
-      const clients = StorageService.getClients().filter(c => String(c.id) !== String(id));
-      StorageService.saveClients(clients);
-
-      // 2. Cascade Delete Projects
-      const projects = StorageService.getProjects();
-      const projectsToDelete = projects.filter(p => String(p.clientId) === String(id));
-      const remainingProjects = projects.filter(p => String(p.clientId) !== String(id));
-      StorageService.saveProjects(remainingProjects);
-
-      // 3. Cascade Delete Quotes
-      const projectIdsToDelete = new Set(projectsToDelete.map(p => String(p.id)));
-      const quotes = StorageService.getQuotes();
-      const remainingQuotes = quotes.filter(q => String(q.clientId) !== String(id) && !projectIdsToDelete.has(String(q.projectId)));
-      StorageService.saveQuotes(remainingQuotes);
+const localService = {
+  async getClients(): Promise<Client[]> {
+    return readArray<Client>(CLIENTS_KEY);
   },
-
-  getProjects: (): Project[] => readArray<Project>(PROJECTS_KEY),
-  saveProjects: (projects: Project[]) => localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects)),
-  
-  deleteProject: (id: string) => {
-      // 1. Delete Project
-      const projects = StorageService.getProjects().filter(p => String(p.id) !== String(id));
-      StorageService.saveProjects(projects);
-
-      // 2. Cascade Delete Quotes
-      const quotes = StorageService.getQuotes().filter(q => String(q.projectId) !== String(id));
-      StorageService.saveQuotes(quotes);
+  async saveClients(clients: Client[]) {
+    localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients));
   },
+  async deleteClient(id: string) {
+    const clients = await this.getClients();
+    const filteredClients = clients.filter(c => String(c.id) !== String(id));
+    await this.saveClients(filteredClients);
 
-  getQuotes: (): Quote[] => readArray<Quote>(QUOTES_KEY),
-  saveQuotes: (quotes: Quote[]) => localStorage.setItem(QUOTES_KEY, JSON.stringify(quotes)),
+    const projects = await this.getProjects();
+    const projectsToDelete = projects.filter(p => String(p.clientId) === String(id));
+    const remainingProjects = projects.filter(p => String(p.clientId) !== String(id));
+    await this.saveProjects(remainingProjects);
 
-  saveQuote: (quote: Quote) => {
-    const quotes = StorageService.getQuotes();
+    const projectIdsToDelete = new Set(projectsToDelete.map(p => String(p.id)));
+    const quotes = await this.getQuotes();
+    const remainingQuotes = quotes.filter(q => String(q.clientId) !== String(id) && !projectIdsToDelete.has(String(q.projectId)));
+    await this.saveQuotes(remainingQuotes);
+  },
+  async getProjects(): Promise<Project[]> {
+    return readArray<Project>(PROJECTS_KEY);
+  },
+  async saveProjects(projects: Project[]) {
+    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+  },
+  async deleteProject(id: string) {
+    const projects = await this.getProjects();
+    const remainingProjects = projects.filter(p => String(p.id) !== String(id));
+    await this.saveProjects(remainingProjects);
+
+    const quotes = await this.getQuotes();
+    const remainingQuotes = quotes.filter(q => String(q.projectId) !== String(id));
+    await this.saveQuotes(remainingQuotes);
+  },
+  async getQuotes(): Promise<Quote[]> {
+    return readArray<Quote>(QUOTES_KEY);
+  },
+  async saveQuotes(quotes: Quote[]) {
+    localStorage.setItem(QUOTES_KEY, JSON.stringify(quotes));
+  },
+  async saveQuote(quote: Quote) {
+    const quotes = await this.getQuotes();
     const index = quotes.findIndex(q => q.id === quote.id);
     if (index >= 0) {
       quotes[index] = quote;
     } else {
       quotes.push(quote);
     }
-    StorageService.saveQuotes(quotes);
+    await this.saveQuotes(quotes);
   },
-  
-  deleteQuote: (id: string) => {
-      const quotes = StorageService.getQuotes().filter(q => String(q.id) !== String(id));
-      StorageService.saveQuotes(quotes);
+  async deleteQuote(id: string) {
+    const quotes = await this.getQuotes();
+    const remainingQuotes = quotes.filter(q => String(q.id) !== String(id));
+    await this.saveQuotes(remainingQuotes);
   }
 };
+
+// ---------------------------
+// Helpers: Supabase mapping
+// ---------------------------
+const toDbClient = (c: Client) => ({
+  id: c.id,
+  name: c.name,
+  email: c.email || '',
+  company_name: c.companyName,
+  address: c.address || '',
+  default_tjms: c.defaultTjms || {}
+});
+
+const fromDbClient = (row: any): Client => ({
+  id: row.id,
+  name: row.name || '',
+  email: row.email || '',
+  companyName: row.company_name || '',
+  address: row.address || '',
+  defaultTjms: row.default_tjms || {}
+});
+
+const toDbProject = (p: Project) => ({
+  id: p.id,
+  client_id: p.clientId,
+  name: p.name,
+  description: p.description || '',
+  specific_tjms: p.specificTjms || {}
+});
+
+const fromDbProject = (row: any): Project => ({
+  id: row.id,
+  clientId: row.client_id,
+  name: row.name,
+  description: row.description || '',
+  specificTjms: row.specific_tjms || {}
+});
+
+const toDbQuote = (q: Quote) => ({
+  id: q.id,
+  reference: q.reference,
+  version: q.version,
+  client_id: q.clientId,
+  project_id: q.projectId,
+  status: q.status,
+  created_at: q.createdAt,
+  updated_at: q.updatedAt,
+  valid_until: q.validUntil,
+  total_amount: q.totalAmount,
+  notes: q.notes || '',
+  has_vat: q.hasVat
+});
+
+const fromDbQuote = (row: any): Quote => ({
+  id: row.id,
+  reference: row.reference,
+  version: row.version,
+  clientId: row.client_id,
+  projectId: row.project_id,
+  status: row.status as QuoteStatus,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+  validUntil: row.valid_until,
+  totalAmount: Number(row.total_amount || 0),
+  notes: row.notes || '',
+  hasVat: Boolean(row.has_vat),
+  sections: (row.quote_sections || [])
+    .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
+    .map((section: any) => ({
+      id: section.id,
+      title: section.title,
+      items: (section.quote_items || []).map((item: any) => ({
+        id: item.id,
+        description: item.description,
+        details: item.details || {}
+      })) as QuoteItem[]
+    })) as QuoteSection[]
+});
+
+// ---------------------------
+// Supabase-backed implementation
+// ---------------------------
+const supabaseService = {
+  async getClients(): Promise<Client[]> {
+    const { data, error } = await supabase!
+      .from('clients')
+      .select('*')
+      .order('company_name', { ascending: true });
+    if (error) throw error;
+    return (data || []).map(fromDbClient);
+  },
+
+  async saveClients(clients: Client[]) {
+    const payload = clients.map(toDbClient);
+    const { error } = await supabase!.from('clients').upsert(payload);
+    if (error) throw error;
+  },
+
+  async deleteClient(id: string) {
+    const { error } = await supabase!.from('clients').delete().eq('id', id);
+    if (error) throw error;
+  },
+
+  async getProjects(): Promise<Project[]> {
+    const { data, error } = await supabase!
+      .from('projects')
+      .select('*')
+      .order('name', { ascending: true });
+    if (error) throw error;
+    return (data || []).map(fromDbProject);
+  },
+
+  async saveProjects(projects: Project[]) {
+    const payload = projects.map(toDbProject);
+    const { error } = await supabase!.from('projects').upsert(payload);
+    if (error) throw error;
+  },
+
+  async deleteProject(id: string) {
+    const { error } = await supabase!.from('projects').delete().eq('id', id);
+    if (error) throw error;
+  },
+
+  async getQuotes(): Promise<Quote[]> {
+    const { data, error } = await supabase!
+      .from('quotes')
+      .select('*, quote_sections(*, quote_items(*))')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(fromDbQuote);
+  },
+
+  async saveQuotes(quotes: Quote[]) {
+    for (const quote of quotes) {
+      await this.saveQuote(quote);
+    }
+  },
+
+  async saveQuote(quote: Quote) {
+    const updatedAt = new Date().toISOString();
+    const baseQuote = toDbQuote({ ...quote, updatedAt });
+
+    const { error: baseErr } = await supabase!.from('quotes').upsert(baseQuote);
+    if (baseErr) throw baseErr;
+
+    // Clear existing sections/items to simplify upsert logic
+    const { error: deleteErr } = await supabase!.from('quote_sections').delete().eq('quote_id', quote.id);
+    if (deleteErr) throw deleteErr;
+
+    if (quote.sections.length) {
+      const sectionsPayload = quote.sections.map((section, index) => ({
+        id: section.id,
+        quote_id: quote.id,
+        title: section.title,
+        position: index
+      }));
+
+      const { error: sectionErr } = await supabase!.from('quote_sections').insert(sectionsPayload);
+      if (sectionErr) throw sectionErr;
+
+      const itemsPayload = quote.sections.flatMap(section => 
+        section.items.map(item => ({
+          id: item.id,
+          section_id: section.id,
+          description: item.description,
+          details: item.details || {}
+        }))
+      );
+
+      if (itemsPayload.length) {
+        const { error: itemsErr } = await supabase!.from('quote_items').insert(itemsPayload);
+        if (itemsErr) throw itemsErr;
+      }
+    }
+
+    return { ...quote, updatedAt };
+  },
+
+  async deleteQuote(id: string) {
+    const { error } = await supabase!.from('quotes').delete().eq('id', id);
+    if (error) throw error;
+  }
+};
+
+// ---------------------------
+// Exported service facade
+// ---------------------------
+export const StorageService = {
+  isRemote: isSupabaseEnabled,
+
+  async getClients() {
+    return isSupabaseEnabled ? supabaseService.getClients() : localService.getClients();
+  },
+  async saveClients(clients: Client[]) {
+    return isSupabaseEnabled ? supabaseService.saveClients(clients) : localService.saveClients(clients);
+  },
+  async deleteClient(id: string) {
+    return isSupabaseEnabled ? supabaseService.deleteClient(id) : localService.deleteClient(id);
+  },
+
+  async getProjects() {
+    return isSupabaseEnabled ? supabaseService.getProjects() : localService.getProjects();
+  },
+  async saveProjects(projects: Project[]) {
+    return isSupabaseEnabled ? supabaseService.saveProjects(projects) : localService.saveProjects(projects);
+  },
+  async deleteProject(id: string) {
+    return isSupabaseEnabled ? supabaseService.deleteProject(id) : localService.deleteProject(id);
+  },
+
+  async getQuotes() {
+    return isSupabaseEnabled ? supabaseService.getQuotes() : localService.getQuotes();
+  },
+  async saveQuotes(quotes: Quote[]) {
+    return isSupabaseEnabled ? supabaseService.saveQuotes(quotes) : localService.saveQuotes(quotes);
+  },
+  async saveQuote(quote: Quote) {
+    return isSupabaseEnabled ? supabaseService.saveQuote(quote) : localService.saveQuote(quote);
+  },
+  async deleteQuote(id: string) {
+    return isSupabaseEnabled ? supabaseService.deleteQuote(id) : localService.deleteQuote(id);
+  }
+};
+

@@ -9,7 +9,15 @@ const Dashboard: React.FC = () => {
   const [quotes, setQuotes] = useState<Quote[]>([]);
 
   useEffect(() => {
-    setQuotes(StorageService.getQuotes());
+    const load = async () => {
+      try {
+        const data = await StorageService.getQuotes();
+        setQuotes(data);
+      } catch (err) {
+        console.error('Unable to load quotes', err);
+      }
+    };
+    load();
   }, []);
 
   const totalRevenue = quotes
