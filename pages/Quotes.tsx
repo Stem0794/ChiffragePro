@@ -134,6 +134,23 @@ const Quotes: React.FC = () => {
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
+  // Deduplicate by reference: keep the highest version (ties by most recent updatedAt)
+  const dedupedByRef = Array.from(
+    filteredQuotes.reduce((map, q) => {
+      const current = map.get(q.reference);
+      if (!current) {
+        map.set(q.reference, q);
+      } else {
+        const isNewerVersion = (q.version || 0) > (current.version || 0);
+        const isNewerUpdate = new Date(q.updatedAt).getTime() > new Date(current.updatedAt).getTime();
+        if (isNewerVersion || isNewerUpdate) {
+          map.set(q.reference, q);
+        }
+      }
+      return map;
+    }, new Map<string, Quote>()).values()
+  ).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
@@ -193,7 +210,7 @@ const Quotes: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filteredQuotes.map(quote => (
+            {dedupedByRef.map(quote => (
               <tr 
                 key={quote.id} 
                 className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
@@ -247,7 +264,7 @@ const Quotes: React.FC = () => {
                 </td>
               </tr>
             ))}
-            {filteredQuotes.length === 0 && (
+            {dedupedByRef.length === 0 && (
                 <tr>
                     <td colSpan={6} className="px-6 py-16 text-center text-slate-400 flex flex-col items-center justify-center">
                         <div className="mb-2 p-4 bg-slate-50 rounded-full">
