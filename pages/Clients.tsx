@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { StorageService } from '../services/storageService';
 import { Client, Project } from '../types';
-import { Plus, User, Briefcase, Building, MapPin, Mail, Trash2, Edit2, Check, ArrowRight, X, Save, DollarSign, LayoutTemplate } from 'lucide-react';
+import { Plus, User, Briefcase, Building, MapPin, Mail, Trash2, Edit2, Check, ArrowRight, X, Save, DollarSign, LayoutTemplate, Share2, XCircle } from 'lucide-react';
 import { sanitizeText } from '../services/sanitize';
+import { supabase, isSupabaseEnabled } from '../services/supabaseClient';
 
 const COMMON_ROLES = [
   "UX/UI designer",
@@ -111,6 +112,9 @@ const Clients: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [clientShares, setClientShares] = useState<Record<string, string[]>>({});
+  const [projectShares, setProjectShares] = useState<Record<string, string[]>>({});
+  const [newShareEmail, setNewShareEmail] = useState<string>('');
 
   // Form states
   const [showClientForm, setShowClientForm] = useState(false);
@@ -157,6 +161,9 @@ const Clients: React.FC = () => {
       ]);
       setClients(clientsData);
       setProjects(projectsData);
+      if (isSupabaseEnabled && supabase) {
+        await fetchShares();
+      }
     } finally {
       setLoading(false);
     }
@@ -295,6 +302,94 @@ const Clients: React.FC = () => {
         }
         await refreshData();
     }
+  };
+
+  const fetchShares = async () => {
+    if (!supabase) return;
+    const [clientRes, projectRes] = await Promise.all([
+      supabase.from('client_shares').select('client_id, shared_email'),
+      supabase.from('project_shares').select('project_id, shared_email'),
+    ]);
+    if (!clientRes.error) {
+      const map: Record<string, string[]> = {};
+      (clientRes.data || []).forEach((row: any) => {
+        const key = String(row.client_id);
+        map[key] = map[key] || [];
+        if (row.shared_email) map[key].push(row.shared_email);
+      });
+      setClientShares(map);
+    }
+    if (!projectRes.error) {
+      const map: Record<string, string[]> = {};
+      (projectRes.data || []).forEach((row: any) => {
+        const key = String(row.project_id);
+        map[key] = map[key] || [];
+        if (row.shared_email) map[key].push(row.shared_email);
+      });
+      setProjectShares(map);
+    }
+  };
+
+  const addClientShare = async (clientId: string) => {
+    if (!supabase) return;
+    const domain = (import.meta.env.VITE_ALLOWED_GOOGLE_DOMAIN || '').toLowerCase();
+    const email = sanitizeText(newShareEmail.trim().toLowerCase());
+    if (!email) {
+      alert("Email requis");
+      return;
+    }
+    if (domain && !email.endsWith(`@${domain}`)) {
+      alert(`Email hors domaine autorisé (${domain})`);
+      return;
+    }
+    const { error } = await supabase.from('client_shares').upsert({ client_id: clientId, shared_email: email });
+    if (error) {
+      alert("Impossible d'ajouter ce partage.");
+      return;
+    }
+    setNewShareEmail('');
+    await fetchShares();
+  };
+
+  const removeClientShare = async (clientId: string, email: string) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('client_shares').delete().eq('client_id', clientId).eq('shared_email', email);
+    if (error) {
+      alert("Impossible de retirer ce partage.");
+      return;
+    }
+    await fetchShares();
+  };
+
+  const addProjectShare = async (projectId: string, emailInput: string) => {
+    if (!supabase) return;
+    const domain = (import.meta.env.VITE_ALLOWED_GOOGLE_DOMAIN || '').toLowerCase();
+    const email = sanitizeText(emailInput.trim().toLowerCase());
+    if (!email) {
+      alert("Email requis");
+      return;
+    }
+    if (domain && !email.endsWith(`@${domain}`)) {
+      alert(`Email hors domaine autorisé (${domain})`);
+      return;
+    }
+    const { error } = await supabase.from('project_shares').upsert({ project_id: projectId, shared_email: email });
+    if (error) {
+      alert("Impossible d'ajouter ce partage projet.");
+      return;
+    }
+    setNewShareEmail('');
+    await fetchShares();
+  };
+
+  const removeProjectShare = async (projectId: string, email: string) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('project_shares').delete().eq('project_id', projectId).eq('shared_email', email);
+    if (error) {
+      alert("Impossible de retirer ce partage projet.");
+      return;
+    }
+    await fetchShares();
   };
 
   const filteredProjects = selectedClientId 
@@ -488,6 +583,47 @@ const Clients: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Accès partagés */}
+                        <div className="mt-6">
+                          <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                            <Share2 size={14} /> Accès partagés (client)
+                          </h5>
+                          {isSupabaseEnabled ? (
+                            <div className="space-y-2">
+                              <div className="flex gap-2">
+                                <input
+                                  type="email"
+                                  className="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-md bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                                  placeholder="collaborateur@with-madrid.com"
+                                  value={newShareEmail}
+                                  onChange={(e) => setNewShareEmail(e.target.value)}
+                                />
+                                <button
+                                  onClick={() => selectedClient && addClientShare(selectedClient.id)}
+                                  className="px-3 py-2 rounded-md bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition"
+                                >
+                                  Partager
+                                </button>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {(clientShares[selectedClient.id] || []).map(email => (
+                                  <span key={email} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-slate-100 text-slate-700 rounded-full border border-slate-200">
+                                    {email}
+                                    <button onClick={() => removeClientShare(selectedClient.id, email)} className="text-slate-400 hover:text-red-500">
+                                      <XCircle size={12} />
+                                    </button>
+                                  </span>
+                                ))}
+                                {(clientShares[selectedClient.id] || []).length === 0 && (
+                                  <span className="text-xs text-slate-400">Aucun partage.</span>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-slate-400">Partage disponible uniquement avec Supabase activé.</p>
+                          )}
+                        </div>
+
                         {/* Compact TJM View for Client */}
                         <div className="mt-6">
                             <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Tarifs Négociés (TJM)</h5>
@@ -622,27 +758,62 @@ const Clients: React.FC = () => {
                                             </div>
                                             <p className="text-sm text-slate-500 mb-6 line-clamp-2 leading-relaxed pl-8">{project.description || 'Pas de description'}</p>
                                             
-                                            <div className="mt-auto pt-3 border-t border-slate-100">
-                                                {project.specificTjms && Object.keys(project.specificTjms).length > 0 ? (
-                                                    <div className="space-y-1.5">
-                                                        <div className="text-[10px] uppercase text-indigo-500 font-bold tracking-wide flex items-center gap-1">
-                                                            <DollarSign size={10} /> Exceptions Tarifaires
+                                                <div className="mt-auto pt-3 border-t border-slate-100">
+                                                    {project.specificTjms && Object.keys(project.specificTjms).length > 0 ? (
+                                                        <div className="space-y-1.5">
+                                                            <div className="text-[10px] uppercase text-indigo-500 font-bold tracking-wide flex items-center gap-1">
+                                                                <DollarSign size={10} /> Exceptions Tarifaires
+                                                            </div>
+                                                            <div className="flex flex-wrap gap-1.5">
+                                                                {Object.entries(project.specificTjms).map(([r, p]) => (
+                                                                    <span key={r} className="inline-flex items-center gap-1 text-[10px] bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full text-indigo-700 font-medium">
+                                                                        {r} <span className="font-bold">{p}€</span>
+                                                                    </span>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                        <div className="flex flex-wrap gap-1.5">
-                                                            {Object.entries(project.specificTjms).map(([r, p]) => (
-                                                                <span key={r} className="inline-flex items-center gap-1 text-[10px] bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full text-indigo-700 font-medium">
-                                                                    {r} <span className="font-bold">{p}€</span>
-                                                                </span>
-                                                            ))}
+                                                    ) : (
+                                                        <div className="flex items-center gap-2 text-[11px] text-slate-400 italic bg-slate-50/50 p-1.5 rounded">
+                                                            <Check size={12} className="text-emerald-500" /> Tarifs standards du client
                                                         </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex items-center gap-2 text-[11px] text-slate-400 italic bg-slate-50/50 p-1.5 rounded">
-                                                        <Check size={12} className="text-emerald-500" /> Tarifs standards du client
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </>
+                                                    )}
+                                                    {isSupabaseEnabled && (
+                                                      <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
+                                                        <div className="text-[10px] uppercase text-slate-500 font-bold tracking-wide flex items-center gap-1">
+                                                          <Share2 size={12} /> Partage (projet)
+                                                        </div>
+                                                        <div className="flex gap-1">
+                                                          <input
+                                                            type="email"
+                                                            className="flex-1 px-2 py-1 text-[11px] border border-slate-300 rounded-md bg-white focus:ring-1 focus:ring-indigo-500 outline-none"
+                                                            placeholder="collaborateur@with-madrid.com"
+                                                            value={newShareEmail}
+                                                            onChange={(e) => setNewShareEmail(e.target.value)}
+                                                          />
+                                                          <button
+                                                            onClick={() => addProjectShare(project.id, newShareEmail)}
+                                                            className="px-2 py-1 rounded-md bg-indigo-600 text-white text-[11px] font-semibold hover:bg-indigo-700 transition"
+                                                          >
+                                                            +
+                                                          </button>
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-1">
+                                                          {(projectShares[project.id] || []).map(email => (
+                                                            <span key={email} className="inline-flex items-center gap-1 text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full border border-slate-200">
+                                                              {email}
+                                                              <button onClick={() => removeProjectShare(project.id, email)} className="text-slate-400 hover:text-red-500">
+                                                                <XCircle size={11} />
+                                                              </button>
+                                                            </span>
+                                                          ))}
+                                                          {(projectShares[project.id] || []).length === 0 && (
+                                                            <span className="text-[11px] text-slate-400">Aucun partage.</span>
+                                                          )}
+                                                        </div>
+                                                      </div>
+                                                    )}
+                                                </div>
+                                            </>
                                     )}
                                     </div>
                                 </div>
