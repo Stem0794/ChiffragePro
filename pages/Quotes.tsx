@@ -76,7 +76,15 @@ const Quotes: React.FC = () => {
       navigate(`/quotes/edit/${newQuote.id}`);
     } catch (err) {
       console.error("Duplication échouée", err);
-      alert("La duplication a échoué. Vérifiez votre connexion ou les permissions.");
+      // Même si une partie a réussi, tenter de naviguer si le devis existe
+      await refresh();
+      const latest = await StorageService.getQuotes();
+      const created = latest.find(q => q.id === newQuote.id);
+      if (created) {
+        navigate(`/quotes/edit/${newQuote.id}`);
+      } else {
+        alert("La duplication a échoué. Vérifiez votre connexion ou les permissions.");
+      }
     }
   };
 
