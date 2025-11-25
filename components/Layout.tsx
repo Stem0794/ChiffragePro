@@ -55,7 +55,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="p-6 border-b border-slate-800">
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Chiffrage<span className="text-indigo-500">Pro</span>
-            <span className="ml-2 text-[10px] text-slate-400 align-top">v1.0.1</span>
+            <span className="ml-2 text-[10px] text-slate-400 align-top">v1.0.2</span>
           </h1>
           <p className="text-slate-500 text-xs mt-1 font-medium tracking-wide uppercase">Manager</p>
         </div>
