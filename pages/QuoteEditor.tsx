@@ -18,6 +18,7 @@ const QuoteEditor: React.FC = () => {
   // Data Sources
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
   const [isDuplicating, setIsDuplicating] = useState(false);
 
   // Form State
@@ -47,6 +48,8 @@ const QuoteEditor: React.FC = () => {
         ]);
         setClients(loadedClients);
         setProjects(loadedProjects);
+        const loadedQuotes = await StorageService.getQuotes();
+        setAllQuotes(loadedQuotes);
 
         if (id && id !== 'new') {
           const existingQuote = (await StorageService.getQuotes()).find(q => q.id === id);
@@ -327,7 +330,7 @@ const QuoteEditor: React.FC = () => {
       if (mode === 'version') {
         const sameRef = allQuotes.filter(q => q.reference === quote.reference);
         const maxVersion = sameRef.reduce((max, q) => Math.max(max, q.version || 1), quote.version || 1);
-        const newQuote: Quote = {
+            const newQuote: Quote = {
           ...quote,
           id: crypto.randomUUID(),
           status: QuoteStatus.DRAFT,
@@ -677,17 +680,35 @@ const QuoteEditor: React.FC = () => {
 
   if (!isReady) return null;
 
+  const versionOptions = quote.reference
+    ? allQuotes.filter(q => q.reference === quote.reference).sort((a, b) => (b.version || 0) - (a.version || 0))
+    : [];
+
   return (
     <div className="max-w-[95%] mx-auto space-y-8 pb-32">
       {/* Header Controls */}
-      <div className="flex items-center justify-between sticky top-[73px] z-20 py-2 bg-slate-50/90 backdrop-blur-sm -mx-4 px-4">
+      <div className="flex items-center justify-between sticky top-[73px] z-20 py-3 bg-slate-50/95 backdrop-blur-sm -mx-4 px-4 border-b border-slate-200">
         <button onClick={() => navigate('/quotes')} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-medium">
           <ArrowLeft size={20} /> Retour
         </button>
         <div className="flex items-center gap-3 flex-wrap justify-end">
-            <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 shadow-sm">
-              <span className="font-semibold text-slate-800">Réf:</span> {quote.reference}
+            <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 shadow-sm">
+              <div className="flex flex-col leading-tight">
+                <span className="text-xs text-slate-500">Réf interne</span>
+                <span className="font-semibold text-slate-800">{quote.reference}</span>
+              </div>
               <span className="px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded-full font-semibold">v{quote.version}</span>
+              {versionOptions.length > 0 && (
+                <select
+                  className="ml-2 text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700"
+                  value={quote.id}
+                  onChange={(e) => navigate(`/quotes/edit/${e.target.value}`)}
+                >
+                  {versionOptions.map(v => (
+                    <option key={v.id} value={v.id}>{`v${v.version} - ${new Date(v.updatedAt).toLocaleDateString('fr-FR')}`}</option>
+                  ))}
+                </select>
+              )}
             </div>
             <div className="relative">
                 <select 
