@@ -1,12 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, FileText, Users, PlusCircle } from 'lucide-react';
+import { supabase, isSupabaseEnabled } from '../services/supabaseClient';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState<boolean>(!isSupabaseEnabled);
+
+  useEffect(() => {
+    if (!isSupabaseEnabled) return;
+
+    const loadUser = async () => {
+      const { data } = await supabase!.auth.getUser();
+      setUserEmail(data.user?.email ?? null);
+      setAuthReady(true);
+    };
+    loadUser();
+
+    const { data: listener } = supabase!.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user?.email ?? null);
+      setAuthReady(true);
+    });
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    if (isSupabaseEnabled && supabase) {
+      await supabase.auth.signOut();
+      setUserEmail(null);
+    }
+  };
+
   const navItems = [
     { name: 'Tableau de bord', to: '/', icon: LayoutDashboard },
     { name: 'Devis', to: '/quotes', icon: FileText },
@@ -48,14 +78,24 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </nav>
 
         <div className="p-4 border-t border-slate-800 bg-slate-900/50">
-            <div className="flex items-center gap-3 px-2 py-2">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-inner border border-white/10">
-                    ME
+            <div className="flex items-center justify-between gap-3 px-2 py-2">
+                <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-inner border border-white/10">
+                        {userEmail ? userEmail[0]?.toUpperCase() : 'ME'}
+                    </div>
+                    <div className="overflow-hidden">
+                        <p className="text-white text-sm font-semibold truncate">{userEmail || 'Utilisateur'}</p>
+                        <p className="text-xs text-slate-500 truncate">{isSupabaseEnabled ? (userEmail ? 'Connecté' : authReady ? 'Déconnecté' : 'Connexion...') : 'Mode local'}</p>
+                    </div>
                 </div>
-                <div className="overflow-hidden">
-                    <p className="text-white text-sm font-semibold truncate">Mon Espace</p>
-                    <p className="text-xs text-slate-500 truncate">Freelance / Admin</p>
-                </div>
+                {isSupabaseEnabled && (
+                  <button
+                    onClick={handleSignOut}
+                    className="text-xs text-slate-300 hover:text-white bg-slate-800/70 px-2 py-1 rounded-md border border-slate-700 hover:border-slate-500 transition"
+                  >
+                    Se déconnecter
+                  </button>
+                )}
             </div>
         </div>
       </aside>

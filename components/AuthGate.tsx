@@ -15,6 +15,19 @@ const AuthGate: React.FC<Props> = ({ children }) => {
   const [email, setEmail] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cooldownMs, setCooldownMs] = useState<number>(0);
+
+  useEffect(() => {
+    const lastSent = Number(localStorage.getItem('otpLastSentAt') || 0);
+    const elapsed = Date.now() - lastSent;
+    if (elapsed < 60_000) {
+      setCooldownMs(60_000 - elapsed);
+    }
+    const t = setInterval(() => {
+      setCooldownMs((prev) => (prev > 0 ? prev - 1000 : 0));
+    }, 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const checkDomain = (currentSession: Session | null) => {
     if (!allowedDomain) return true; // no restriction set
@@ -53,6 +66,10 @@ const AuthGate: React.FC<Props> = ({ children }) => {
     setFeedback(null);
     setError(null);
 
+    if (cooldownMs > 0) {
+      setError('Veuillez patienter avant de renvoyer un lien.');
+      return;
+    }
     if (!email) {
       setError('Merci de saisir un email.');
       return;
@@ -72,6 +89,8 @@ const AuthGate: React.FC<Props> = ({ children }) => {
       setError(signErr.message);
     } else {
       setFeedback("Lien de connexion envoyé. Vérifiez votre boîte mail.");
+      localStorage.setItem('otpLastSentAt', String(Date.now()));
+      setCooldownMs(60_000);
     }
   };
 
@@ -109,9 +128,10 @@ const AuthGate: React.FC<Props> = ({ children }) => {
             />
             <button
               onClick={handleMagicLink}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-md transition"
+              disabled={cooldownMs > 0}
+              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Envoyer le lien de connexion
+              {cooldownMs > 0 ? `Renvoyer dans ${Math.ceil(cooldownMs / 1000)}s` : 'Envoyer le lien de connexion'}
             </button>
             {feedback && <p className="text-sm text-emerald-600">{feedback}</p>}
             {error && <p className="text-sm text-red-600">{error}</p>}
