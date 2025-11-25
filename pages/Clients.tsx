@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { StorageService } from '../services/storageService';
 import { Client, Project } from '../types';
 import { Plus, User, Briefcase, Building, MapPin, Mail, Trash2, Edit2, Check, ArrowRight, X, Save, DollarSign, LayoutTemplate } from 'lucide-react';
+import { sanitizeText } from '../services/sanitize';
 
 const COMMON_ROLES = [
   "UX/UI designer",
@@ -165,10 +166,10 @@ const Clients: React.FC = () => {
     if (!newClient.name || !newClient.companyName) return;
     const client: Client = {
       id: crypto.randomUUID(),
-      name: newClient.name!,
-      companyName: newClient.companyName!,
-      email: newClient.email || '',
-      address: newClient.address || '',
+      name: sanitizeText(newClient.name!),
+      companyName: sanitizeText(newClient.companyName!),
+      email: sanitizeText(newClient.email || ''),
+      address: sanitizeText(newClient.address || ''),
       defaultTjms: newClient.defaultTjms || {},
     };
     const updatedClients = [...clients, client];
@@ -186,7 +187,14 @@ const Clients: React.FC = () => {
   const handleUpdateClient = async () => {
     if (!selectedClientId || !editClientData.companyName) return;
     const updatedClients = clients.map(c => 
-        c.id === selectedClientId ? { ...c, ...editClientData } as Client : c
+        c.id === selectedClientId ? { 
+          ...c, 
+          companyName: sanitizeText(editClientData.companyName || ''),
+          name: sanitizeText(editClientData.name || ''),
+          email: sanitizeText(editClientData.email || ''),
+          address: sanitizeText(editClientData.address || ''),
+          defaultTjms: editClientData.defaultTjms || {}
+        } as Client : c
     );
     setClients(updatedClients);
     try {
@@ -231,8 +239,8 @@ const Clients: React.FC = () => {
     const project: Project = {
       id: crypto.randomUUID(),
       clientId: selectedClientId,
-      name: newProject.name!,
-      description: newProject.description || '',
+      name: sanitizeText(newProject.name!),
+      description: sanitizeText(newProject.description || '', 1000),
       specificTjms: newProject.specificTjms,
     };
     const updatedProjects = [...projects, project];
@@ -255,7 +263,12 @@ const Clients: React.FC = () => {
   const handleUpdateProject = async () => {
     if (!editingProjectId || !editProjectData.name) return;
     const updatedProjects = projects.map(p => 
-        p.id === editingProjectId ? { ...p, ...editProjectData } as Project : p
+        p.id === editingProjectId ? { 
+          ...p, 
+          name: sanitizeText(editProjectData.name || ''),
+          description: sanitizeText(editProjectData.description || '', 1000),
+          specificTjms: editProjectData.specificTjms || {}
+        } as Project : p
     );
     setProjects(updatedProjects);
     try {

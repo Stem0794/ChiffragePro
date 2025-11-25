@@ -4,6 +4,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { StorageService } from '../services/storageService';
 import { Quote, Client, Project, QuoteStatus } from '../types';
 import { Search, Filter, MoreVertical, Copy, Edit3, Trash2, Eye, User } from 'lucide-react';
+import { sanitizeText } from '../services/sanitize';
 
 const Quotes: React.FC = () => {
   const navigate = useNavigate();

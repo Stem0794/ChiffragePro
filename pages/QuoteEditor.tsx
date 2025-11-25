@@ -5,6 +5,7 @@ import { StorageService } from '../services/storageService';
 import { Client, Project, Quote, QuoteItem, QuoteSection, QuoteStatus } from '../types';
 import { ArrowLeft, Save, Trash2, Plus, Calendar, Download, GripVertical, PlusCircle, X, Calculator, FileText, FileSpreadsheet } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { sanitizeText } from '../services/sanitize';
 
 const QuoteEditor: React.FC = () => {
   const { id } = useParams();
@@ -135,7 +136,7 @@ const QuoteEditor: React.FC = () => {
   const updateSectionTitle = (sectionId: string, title: string) => {
       setQuote(prev => ({
           ...prev,
-          sections: prev.sections.map(s => s.id === sectionId ? { ...s, title } : s)
+          sections: prev.sections.map(s => s.id === sectionId ? { ...s, title: sanitizeText(title) } : s)
       }));
   };
 
@@ -165,7 +166,7 @@ const QuoteEditor: React.FC = () => {
               if (s.id === sectionId) {
                   return {
                       ...s,
-                      items: s.items.map(item => item.id === itemId ? { ...item, [field]: value } : item)
+                      items: s.items.map(item => item.id === itemId ? { ...item, [field]: field === 'description' ? sanitizeText(value) : value } : item)
                   };
               }
               return s;
@@ -287,7 +288,15 @@ const QuoteEditor: React.FC = () => {
         alert("Veuillez sélectionner un client et un projet.");
         return;
     }
-    const toSave = { ...quote, updatedAt: new Date().toISOString() };
+    const sanitizedSections = quote.sections.map(section => ({
+      ...section,
+      title: sanitizeText(section.title),
+      items: section.items.map(item => ({
+        ...item,
+        description: sanitizeText(item.description, 1000)
+      }))
+    }));
+    const toSave = { ...quote, sections: sanitizedSections, updatedAt: new Date().toISOString() };
     setLoading(true);
     try {
       await StorageService.saveQuote(toSave);
