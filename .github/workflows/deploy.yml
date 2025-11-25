@@ -39,6 +39,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_ALLOWED_GOOGLE_DOMAIN: ${{ secrets.VITE_ALLOWED_GOOGLE_DOMAIN }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
