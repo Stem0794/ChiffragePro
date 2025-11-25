@@ -185,7 +185,7 @@ const Clients: React.FC = () => {
       await StorageService.saveClients([client]); // upsert only the new client to avoid policy conflicts
       await refreshData();
     } catch (e) {
-      alert("Impossible d'enregistrer le client. Vérifiez votre connexion.");
+      console.error("Impossible d'enregistrer le client", e);
     }
     setShowClientForm(false);
     setNewClient({ name: '', companyName: '', email: '', defaultTjms: { "Chef de projet": 600, "Full stack developer": 500 } });
@@ -209,7 +209,7 @@ const Clients: React.FC = () => {
       await StorageService.saveClients([mergedClient]); // upsert only the edited client
       await refreshData();
     } catch (e) {
-      alert("Impossible de mettre à jour le client.");
+      console.error("Impossible de mettre à jour le client", e);
     }
     setIsEditingClient(false);
   };
