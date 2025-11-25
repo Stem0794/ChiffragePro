@@ -707,7 +707,7 @@ const QuoteEditor: React.FC = () => {
                   onChange={(e) => navigate(`/quotes/edit/${e.target.value}`)}
                 >
                   {versionOptions.map(v => (
-                    <option key={v.id} value={v.id}>{`v${v.version} - ${new Date(v.updatedAt).toLocaleDateString('fr-FR')}`}</option>
+                    <option key={v.id} value={v.id}>{`${new Date(v.updatedAt).toLocaleDateString('fr-FR')}`}</option>
                   ))}
                 </select>
               )}
