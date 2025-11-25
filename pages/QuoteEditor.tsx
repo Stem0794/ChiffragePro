@@ -689,35 +689,35 @@ const QuoteEditor: React.FC = () => {
     <div className="max-w-[95%] mx-auto space-y-8 pb-32">
       {/* Header Controls */}
       <div className="sticky top-[73px] z-20 bg-slate-50/95 backdrop-blur-sm -mx-4 px-4 border-b border-slate-200 py-4">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3 justify-between">
             <div className="flex flex-wrap items-center gap-3">
               <button onClick={() => navigate('/quotes')} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-medium">
                 <ArrowLeft size={20} /> Retour
               </button>
-              <div className="flex items-center gap-3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 shadow-sm">
+              <div className="flex items-center gap-3 px-3 h-11 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 shadow-sm">
                 <div className="flex flex-col leading-tight">
                   <span className="text-xs text-slate-500">Réf interne</span>
                   <span className="font-semibold text-slate-800">{quote.reference}</span>
                 </div>
                 <span className="px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded-full font-semibold">v{quote.version}</span>
-                {versionOptions.length > 0 && (
-                  <select
-                    className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700"
-                    value={quote.id}
-                    onChange={(e) => navigate(`/quotes/edit/${e.target.value}`)}
-                  >
-                    {versionOptions.map(v => (
-                      <option key={v.id} value={v.id}>{`v${v.version} - ${new Date(v.updatedAt).toLocaleDateString('fr-FR')}`}</option>
-                    ))}
-                  </select>
-                )}
               </div>
+              {versionOptions.length > 0 && (
+                <select
+                  className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700"
+                  value={quote.id}
+                  onChange={(e) => navigate(`/quotes/edit/${e.target.value}`)}
+                >
+                  {versionOptions.map(v => (
+                    <option key={v.id} value={v.id}>{`v${v.version} - ${new Date(v.updatedAt).toLocaleDateString('fr-FR')}`}</option>
+                  ))}
+                </select>
+              )}
+            </div>
               <div className="relative">
                   <select 
                       value={quote.status}
                       onChange={handleStatusChange}
-                      className={`appearance-none pl-4 pr-10 py-2 rounded-lg text-sm font-bold cursor-pointer outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 border-none shadow-sm transition-all
+                      className={`appearance-none pl-4 pr-10 h-11 rounded-lg text-sm font-bold cursor-pointer outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 border-none shadow-sm transition-all
                           ${quote.status === QuoteStatus.ACCEPTED ? 'bg-emerald-100 text-emerald-800' : 
                             quote.status === QuoteStatus.SENT ? 'bg-amber-100 text-amber-800' : 
                             quote.status === QuoteStatus.REJECTED ? 'bg-red-100 text-red-800' : 'bg-white text-slate-700 border border-slate-300'
@@ -737,7 +737,7 @@ const QuoteEditor: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowExportMenu((v) => !v)}
-                  className="flex items-center gap-2 h-10 px-4 bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-200 rounded-lg shadow-sm transition-colors font-medium text-sm"
+                  className="flex items-center gap-2 h-11 px-4 bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-200 rounded-lg shadow-sm transition-colors font-medium text-sm"
                 >
                   Export
                 </button>
@@ -760,7 +760,7 @@ const QuoteEditor: React.FC = () => {
               </div>
               <button 
                   onClick={handleSave}
-                  className="flex items-center gap-2 h-10 px-5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all active:scale-95 font-medium"
+                  className="flex items-center gap-2 h-11 px-5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all active:scale-95 font-medium"
               >
                   <Save size={18} /> Enregistrer
               </button>
@@ -768,20 +768,19 @@ const QuoteEditor: React.FC = () => {
                 <button
                   onClick={() => duplicateQuote('version')}
                   disabled={isDuplicating}
-                  className="flex items-center gap-1 h-10 px-3 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg transition disabled:opacity-60"
+                  className="flex items-center gap-1 h-11 px-3 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg transition disabled:opacity-60"
                 >
                   Nouvelle version
                 </button>
                 <button
                   onClick={() => duplicateQuote('copy')}
                   disabled={isDuplicating}
-                  className="flex items-center gap-1 h-10 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition disabled:opacity-60"
+                  className="flex items-center gap-1 h-11 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition disabled:opacity-60"
                 >
                   Dupliquer
                 </button>
               </div>
             </div>
-          </div>
         </div>
       </div>
 
