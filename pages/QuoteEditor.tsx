@@ -694,24 +694,20 @@ const QuoteEditor: React.FC = () => {
               <button onClick={() => navigate('/quotes')} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-medium">
                 <ArrowLeft size={20} /> Retour
               </button>
-            <div className="flex items-center gap-3 px-3 h-11 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 shadow-sm">
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs text-slate-500">Réf interne</span>
-                <span className="font-semibold text-slate-800">{quote.reference}</span>
+              <div className="flex items-center gap-3 px-3 h-11 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 shadow-sm">
+                <span className="px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded-full font-semibold">v{quote.version}</span>
+                {versionOptions.length > 0 && (
+                  <select
+                    className="text-sm border border-slate-200 rounded-md px-3 py-2 bg-white text-slate-700"
+                    value={quote.id}
+                    onChange={(e) => navigate(`/quotes/edit/${e.target.value}`)}
+                  >
+                    {versionOptions.map(v => (
+                      <option key={v.id} value={v.id}>{`${new Date(v.updatedAt).toLocaleDateString('fr-FR')}`}</option>
+                    ))}
+                  </select>
+                )}
               </div>
-              <span className="px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded-full font-semibold">v{quote.version}</span>
-              {versionOptions.length > 0 && (
-                <select
-                  className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-700"
-                  value={quote.id}
-                  onChange={(e) => navigate(`/quotes/edit/${e.target.value}`)}
-                >
-                  {versionOptions.map(v => (
-                    <option key={v.id} value={v.id}>{`${new Date(v.updatedAt).toLocaleDateString('fr-FR')}`}</option>
-                  ))}
-                </select>
-              )}
-            </div>
             <div className="relative">
               <select 
                   value={quote.status}
