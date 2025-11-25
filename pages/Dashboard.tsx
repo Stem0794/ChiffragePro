@@ -108,7 +108,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow max-w-5xl mx-auto w-full">
+        <div className="lg:col-span-3 bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow max-w-5xl mx-auto w-full">
           <div className="flex justify-between items-center mb-6">
               <h4 className="text-lg font-bold text-slate-800">Répartition des Devis</h4>
               <div className="text-xs text-slate-400 font-medium bg-slate-50 px-2 py-1 rounded">Par statut</div>
