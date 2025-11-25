@@ -217,8 +217,10 @@ const Quotes: React.FC = () => {
                 onClick={() => navigate(`/quotes/edit/${quote.id}`)}
               >
                 <td className="px-6 py-4">
-                  <div className="font-bold text-slate-900">{quote.reference}</div>
-                  <div className="text-xs text-slate-400 font-medium">v{quote.version}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-bold text-slate-900">{quote.reference}</div>
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">v{quote.version}</span>
+                  </div>
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-sm font-semibold text-slate-800">{getClientName(quote.clientId)}</div>
