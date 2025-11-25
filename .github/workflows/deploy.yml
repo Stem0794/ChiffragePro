@@ -35,8 +35,8 @@ jobs:
         env:
           BASE_PATH: /ChiffragePro/
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          VITE_SUPABASE_URL: https://tejkvsnseagbvdmxfbjf.supabase.co
-          VITE_SUPABASE_ANON_KEY: sb_publishable_FggyDkOSStp1QPob3ErJnA_A_A8fi9H
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
