@@ -7,16 +7,14 @@ import { sanitizeText } from '../services/sanitize';
 import { supabase, isSupabaseEnabled } from '../services/supabaseClient';
 
 const COMMON_ROLES = [
-  "UX/UI designer",
-  "Art Director",
-  "Developer",
-  "Data Analyst",
-  "CDP Senior",
-  "CDP",
-  "Directeur projet",
+  "UX/UI",
+  "Dev",
+  "Data analyst",
+  "CDP senior",
+  "CDP Junior",
+  "Directeur de projet",
   "Directeur technique",
   "Directeur de production",
-  "Tech lead",
   "SRE"
 ];
 
@@ -124,16 +122,14 @@ const Clients: React.FC = () => {
   const [newClient, setNewClient] = useState<Partial<Client>>({ 
     name: '', companyName: '', email: '', 
     defaultTjms: { 
-      "UX/UI designer": 720,
-      "Art Director": 920,
-      "Developer": 880,
-      "Data Analyst": 880,
-      "CDP Senior": 720,
-      "CDP": 650,
-      "Directeur projet": 920,
+      "UX/UI": 720,
+      "Dev": 880,
+      "Data analyst": 880,
+      "CDP senior": 720,
+      "CDP Junior": 650,
+      "Directeur de projet": 920,
       "Directeur technique": 1400,
       "Directeur de production": 1050,
-      "Tech lead": 1050,
       "SRE": 1050
     }
   });
@@ -188,7 +184,17 @@ const Clients: React.FC = () => {
       console.error("Impossible d'enregistrer le client", e);
     }
     setShowClientForm(false);
-    setNewClient({ name: '', companyName: '', email: '', defaultTjms: { "Chef de projet": 600, "Full stack developer": 500 } });
+    setNewClient({ name: '', companyName: '', email: '', defaultTjms: { 
+      "UX/UI": 720,
+      "Dev": 880,
+      "Data analyst": 880,
+      "CDP senior": 720,
+      "CDP Junior": 650,
+      "Directeur de projet": 920,
+      "Directeur technique": 1400,
+      "Directeur de production": 1050,
+      "SRE": 1050
+    } });
   };
 
   const handleUpdateClient = async () => {

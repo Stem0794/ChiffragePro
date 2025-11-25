@@ -7,16 +7,14 @@ const QUOTES_KEY = 'devispro_quotes';
 
 // Default roles for local fallback seeding
 const DEFAULT_ROLES = {
-  "UX/UI designer": 720,
-  "Art Director": 920,
-  "Developer": 880,
-  "Data Analyst": 880,
-  "CDP Senior": 720,
-  "CDP": 650,
-  "Directeur projet": 920,
+  "UX/UI": 720,
+  "Dev": 880,
+  "Data analyst": 880,
+  "CDP senior": 720,
+  "CDP Junior": 650,
+  "Directeur de projet": 920,
   "Directeur technique": 1400,
   "Directeur de production": 1050,
-  "Tech lead": 1050,
   "SRE": 1050
 };
 
