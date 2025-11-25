@@ -9,6 +9,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userLabel, setUserLabel] = useState<string>('Utilisateur');
   const [authReady, setAuthReady] = useState<boolean>(!isSupabaseEnabled);
 
   useEffect(() => {
@@ -16,13 +17,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     const loadUser = async () => {
       const { data } = await supabase!.auth.getUser();
-      setUserEmail(data.user?.email ?? null);
+      const email = data.user?.email ?? null;
+      setUserEmail(email);
+      setUserLabel(email ? email.split('@')[0]?.replace(/\./g, ' ') || email : 'Utilisateur');
       setAuthReady(true);
     };
     loadUser();
 
     const { data: listener } = supabase!.auth.onAuthStateChange((_event, session) => {
-      setUserEmail(session?.user?.email ?? null);
+      const email = session?.user?.email ?? null;
+      setUserEmail(email);
+      setUserLabel(email ? email.split('@')[0]?.replace(/\./g, ' ') || email : 'Utilisateur');
       setAuthReady(true);
     });
     return () => {
@@ -81,10 +86,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="flex items-center justify-between gap-3 px-2 py-2">
                 <div className="flex items-center gap-3 overflow-hidden">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-inner border border-white/10">
-                        {userEmail ? userEmail[0]?.toUpperCase() : 'ME'}
+                        {userLabel ? userLabel[0]?.toUpperCase() : 'ME'}
                     </div>
                     <div className="overflow-hidden">
-                        <p className="text-white text-sm font-semibold truncate">{userEmail || 'Utilisateur'}</p>
+                        <p className="text-white text-sm font-semibold truncate">{userLabel || 'Utilisateur'}</p>
                         <p className="text-xs text-slate-500 truncate">{isSupabaseEnabled ? (userEmail ? 'Connecté' : authReady ? 'Déconnecté' : 'Connexion...') : 'Mode local'}</p>
                     </div>
                 </div>
