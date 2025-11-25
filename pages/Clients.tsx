@@ -182,7 +182,7 @@ const Clients: React.FC = () => {
     const updatedClients = [...clients, client];
     setClients(updatedClients);
     try {
-      await StorageService.saveClients(updatedClients);
+      await StorageService.saveClients([client]); // upsert only the new client to avoid policy conflicts
       await refreshData();
     } catch (e) {
       alert("Impossible d'enregistrer le client. Vérifiez votre connexion.");
@@ -193,19 +193,20 @@ const Clients: React.FC = () => {
 
   const handleUpdateClient = async () => {
     if (!selectedClientId || !editClientData.companyName) return;
-    const updatedClients = clients.map(c => 
-        c.id === selectedClientId ? { 
-          ...c, 
-          companyName: sanitizeText(editClientData.companyName || ''),
-          name: sanitizeText(editClientData.name || ''),
-          email: sanitizeText(editClientData.email || ''),
-          address: sanitizeText(editClientData.address || ''),
-          defaultTjms: editClientData.defaultTjms || {}
-        } as Client : c
-    );
+    const updatedClient = clients.find(c => c.id === selectedClientId);
+    if (!updatedClient) return;
+    const mergedClient: Client = {
+      ...updatedClient,
+      companyName: sanitizeText(editClientData.companyName || ''),
+      name: sanitizeText(editClientData.name || ''),
+      email: sanitizeText(editClientData.email || ''),
+      address: sanitizeText(editClientData.address || ''),
+      defaultTjms: editClientData.defaultTjms || {}
+    };
+    const updatedClients = clients.map(c => c.id === selectedClientId ? mergedClient : c);
     setClients(updatedClients);
     try {
-      await StorageService.saveClients(updatedClients);
+      await StorageService.saveClients([mergedClient]); // upsert only the edited client
       await refreshData();
     } catch (e) {
       alert("Impossible de mettre à jour le client.");
@@ -253,7 +254,7 @@ const Clients: React.FC = () => {
     const updatedProjects = [...projects, project];
     setProjects(updatedProjects);
     try {
-      await StorageService.saveProjects(updatedProjects);
+      await StorageService.saveProjects([project]); // upsert only the new project
       await refreshData();
     } catch (e) {
       alert("Impossible d'enregistrer le projet.");
@@ -269,17 +270,18 @@ const Clients: React.FC = () => {
 
   const handleUpdateProject = async () => {
     if (!editingProjectId || !editProjectData.name) return;
-    const updatedProjects = projects.map(p => 
-        p.id === editingProjectId ? { 
-          ...p, 
-          name: sanitizeText(editProjectData.name || ''),
-          description: sanitizeText(editProjectData.description || '', 1000),
-          specificTjms: editProjectData.specificTjms || {}
-        } as Project : p
-    );
+    const updatedProject = projects.find(p => p.id === editingProjectId);
+    if (!updatedProject) return;
+    const mergedProject: Project = {
+      ...updatedProject,
+      name: sanitizeText(editProjectData.name || ''),
+      description: sanitizeText(editProjectData.description || '', 1000),
+      specificTjms: editProjectData.specificTjms || {}
+    };
+    const updatedProjects = projects.map(p => p.id === editingProjectId ? mergedProject : p);
     setProjects(updatedProjects);
     try {
-      await StorageService.saveProjects(updatedProjects);
+      await StorageService.saveProjects([mergedProject]); // upsert only the edited project
       await refreshData();
     } catch (e) {
       alert("Impossible de mettre à jour le projet.");
